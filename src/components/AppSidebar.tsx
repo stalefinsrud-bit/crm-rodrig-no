@@ -31,8 +31,8 @@ export function AppSidebar() {
           <Anchor className="h-5 w-5 text-sidebar-primary-foreground" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-sidebar-foreground">NordCRM</p>
-          <p className="text-xs text-sidebar-foreground/60">Board Reporting</p>
+        <p className="text-sm font-semibold text-sidebar-foreground">RodRig CRM</p>
+          <p className="text-xs text-sidebar-foreground/60">AWT Pipeline & Board Reporting</p>
         </div>
       </div>
       <SidebarContent>

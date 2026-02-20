@@ -59,7 +59,7 @@ export default function Dashboard() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-display text-foreground">Executive Dashboard</h1>
+          <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
           <p className="text-muted-foreground mt-1">Loading pipeline data...</p>
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-display text-foreground">Executive Dashboard</h1>
+        <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
         <p className="text-muted-foreground mt-1">Pipeline overview & key performance indicators</p>
       </div>
 
