@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Anchor } from 'lucide-react';
+import rodrigLogo from '@/assets/rodrig-logo.svg';
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -44,8 +44,8 @@ export function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary">
-            <Anchor className="h-7 w-7 text-primary-foreground" />
+          <div className="mx-auto mb-4">
+            <img src={rodrigLogo} alt="RodRig" className="h-14 w-auto mx-auto" />
           </div>
           <CardTitle className="text-2xl font-display">RodRig CRM</CardTitle>
           <CardDescription className="space-y-1">
