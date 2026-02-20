@@ -38,7 +38,7 @@ export function useUpdateProspect() {
 export function useCreateProspect() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (prospect: Omit<Prospect, 'id' | 'created_at' | 'updated_at' | 'probability' | 'weighted_value'>) => {
+    mutationFn: async (prospect: Omit<Prospect, 'id' | 'created_at' | 'updated_at' | 'probability' | 'weighted_value' | 'fleet_size'> & { fleet_size?: number | null }) => {
       const { data, error } = await supabase
         .from('prospects')
         .insert(prospect)

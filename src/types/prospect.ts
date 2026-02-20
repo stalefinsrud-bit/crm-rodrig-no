@@ -15,6 +15,7 @@ export interface Prospect {
   probability: number;
   estimated_value: number | null;
   weighted_value: number | null;
+  fleet_size: number | null;
   priority: ProspectPriority;
   notes_internal: string | null;
   date_contacted: string | null;

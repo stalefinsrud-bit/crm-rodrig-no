@@ -48,6 +48,7 @@ export type Database = {
           date_contacted: string | null
           email: string | null
           estimated_value: number | null
+          fleet_size: number | null
           id: string
           next_followup: string | null
           notes_internal: string | null
@@ -69,6 +70,7 @@ export type Database = {
           date_contacted?: string | null
           email?: string | null
           estimated_value?: number | null
+          fleet_size?: number | null
           id?: string
           next_followup?: string | null
           notes_internal?: string | null
@@ -90,6 +92,7 @@ export type Database = {
           date_contacted?: string | null
           email?: string | null
           estimated_value?: number | null
+          fleet_size?: number | null
           id?: string
           next_followup?: string | null
           notes_internal?: string | null
