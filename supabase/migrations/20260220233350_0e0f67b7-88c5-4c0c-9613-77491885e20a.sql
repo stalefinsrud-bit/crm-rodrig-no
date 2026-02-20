@@ -1,0 +1,1 @@
+ALTER TABLE public.prospects ADD COLUMN fleet_size integer DEFAULT NULL;
