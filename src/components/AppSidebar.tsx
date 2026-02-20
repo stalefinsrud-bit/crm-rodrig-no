@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, Phone, TrendingUp, FileText, LogOut, Anchor } from 'lucide-react';
+import { LayoutDashboard, Users, Phone, TrendingUp, FileText, LogOut } from 'lucide-react';
+import rodrigLogo from '@/assets/rodrig-logo.svg';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -27,11 +28,9 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <div className="flex h-16 items-center gap-3 px-6 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary">
-          <Anchor className="h-5 w-5 text-sidebar-primary-foreground" />
-        </div>
+        <img src={rodrigLogo} alt="RodRig" className="h-9 w-auto" />
         <div>
-        <p className="text-sm font-semibold text-sidebar-foreground">RodRig CRM</p>
+          <p className="text-sm font-semibold text-sidebar-foreground">RodRig CRM</p>
           <p className="text-xs text-sidebar-foreground/60">AWT Pipeline & Board Reporting</p>
         </div>
       </div>
