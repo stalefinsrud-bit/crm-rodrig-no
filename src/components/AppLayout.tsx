@@ -10,7 +10,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 flex flex-col">
           <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4">
             <SidebarTrigger />
-            <img src={awtLogo} alt="AWT" className="h-7 w-auto" />
+            <img src={awtLogo} alt="AWT" className="h-5 w-auto" />
           </header>
           <div className="flex-1 p-6 overflow-auto">
             {children}

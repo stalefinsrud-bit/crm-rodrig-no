@@ -31,7 +31,7 @@ export function AppSidebar() {
         <img src={rodrigLogo} alt="RodRig" className="h-9 w-auto" />
         <div>
           <p className="text-sm font-semibold text-sidebar-foreground">RodRig CRM</p>
-          <p className="text-xs text-sidebar-foreground/60">AWT Pipeline & Board Reporting</p>
+          <p className="text-xs text-sidebar-foreground/60">AWT</p>
         </div>
       </div>
       <SidebarContent>
