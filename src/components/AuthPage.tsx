@@ -47,9 +47,10 @@ export function AuthPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary">
             <Anchor className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-display">NordCRM</CardTitle>
-          <CardDescription>
-            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          <CardTitle className="text-2xl font-display">RodRig CRM</CardTitle>
+          <CardDescription className="space-y-1">
+            <span className="block">AWT Pipeline & Board Reporting</span>
+            <span className="block text-xs">{isLogin ? 'Sign in to your account' : 'Create a new account'}</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
