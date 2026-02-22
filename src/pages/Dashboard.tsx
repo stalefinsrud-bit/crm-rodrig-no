@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { COMPANY_TYPES } from '@/types/company';
 import type { Company } from '@/types/company';
 
 const CHART_COLORS = [
@@ -42,11 +43,11 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all');
+  const [companyTypeFilter, setCompanyTypeFilter] = useState<string>('all');
 
   const regions = useMemo(() => [...new Set(companies.map(c => c.region).filter(Boolean))].sort(), [companies]);
   const segments = useMemo(() => [...new Set(companies.map(c => c.vessel_segment).filter(Boolean))].sort(), [companies]);
 
-  // Get company IDs that have a given activity type
   const companyIdsWithActivityType = useMemo(() => {
     if (activityTypeFilter === 'all') return null;
     return new Set(allActivities.filter(a => a.activity_type === activityTypeFilter).map(a => a.company_id));
@@ -58,10 +59,11 @@ export default function Dashboard() {
       if (segmentFilter !== 'all' && c.vessel_segment !== segmentFilter) return false;
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
+      if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
       if (companyIdsWithActivityType && !companyIdsWithActivityType.has(c.id)) return false;
       return true;
     });
-  }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyIdsWithActivityType]);
+  }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyTypeFilter, companyIdsWithActivityType]);
 
   const meetingCount = useMemo(() =>
     allActivities.filter(a => a.activity_type === 'meeting').length
@@ -73,11 +75,7 @@ export default function Dashboard() {
     const responded = filtered.filter(c => RESPONDED_STATUSES.includes(c.status)).length;
     const dialogue = filtered.filter(c => DIALOGUE_STATUSES.includes(c.status)).length;
     const signed = filtered.filter(c => c.status === 'Agreement Signed').length;
-
     const hitRate = contacted ? Math.round((responded / contacted) * 100) : 0;
-    const conversionRate = contacted ? Math.round((signed / contacted) * 100) : 0;
-
-    // Fleet
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
     const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
     const fleetPenetration = fleetTotal ? Math.round((fleetSigned / fleetTotal) * 100) : 0;
@@ -98,7 +96,7 @@ export default function Dashboard() {
     filtered.forEach(c => { byStatus[c.status] = (byStatus[c.status] || 0) + 1; });
     const statusData = Object.entries(byStatus).map(([name, value]) => ({ name, value }));
 
-    return { total, contacted, responded, dialogue, signed, hitRate, conversionRate, fleetTotal, fleetSigned, fleetPenetration, funnelData, countryData, statusData };
+    return { total, contacted, responded, dialogue, signed, hitRate, fleetTotal, fleetSigned, fleetPenetration, funnelData, countryData, statusData };
   }, [filtered]);
 
   if (isLoading) {
@@ -112,7 +110,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header + Filters */}
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
@@ -120,6 +117,13 @@ export default function Dashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={companyTypeFilter} onValueChange={setCompanyTypeFilter}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Company Type" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {COMPANY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={regionFilter} onValueChange={setRegionFilter}>
             <SelectTrigger className="w-40"><SelectValue placeholder="Region" /></SelectTrigger>
             <SelectContent>
@@ -271,6 +275,7 @@ export default function Dashboard() {
                 <TableRow className="bg-muted/50">
                   <TableHead className="w-10"></TableHead>
                   <TableHead className="font-semibold">Company</TableHead>
+                  <TableHead className="font-semibold">Type</TableHead>
                   <TableHead className="font-semibold">Country</TableHead>
                   <TableHead className="font-semibold">Region</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
@@ -280,7 +285,7 @@ export default function Dashboard() {
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No companies match filters</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No companies match filters</TableCell></TableRow>
                 ) : (
                   filtered.slice(0, 25).map(c => {
                     const tl = TRAFFIC_LIGHT[c.status] || { color: 'bg-muted-foreground', label: '?' };
@@ -288,6 +293,7 @@ export default function Dashboard() {
                       <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
                         <TableCell><div className={`h-3 w-3 rounded-full ${tl.color}`} title={`${tl.label}: ${c.status}`} /></TableCell>
                         <TableCell className="font-medium">{c.company}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                         <TableCell className="text-sm">{c.country || '—'}</TableCell>
                         <TableCell className="text-sm">{c.region || '—'}</TableCell>
                         <TableCell className="text-sm">{c.status}</TableCell>

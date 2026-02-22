@@ -1,6 +1,6 @@
 export interface Company {
   id: string;
-  code: string | null;
+  company_type: string | null;
   company: string;
   country: string | null;
   region: string | null;
@@ -19,6 +19,7 @@ export interface Company {
   priority: string;
   status: string;
   fleet_size: number | null;
+  partner_stage: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -35,6 +36,37 @@ export interface Activity {
   created_by: string | null;
   is_system_generated: boolean;
 }
+
+export const COMPANY_TYPES = [
+  'Ship Operator',
+  'Offshore Operator',
+  'Yard',
+  'Sales Partner',
+  'Research / Government',
+  'Supplier',
+] as const;
+
+export const PARTNER_STAGES = [
+  'Identified',
+  'Presented',
+  'In Dialogue',
+  'Proposal Sent',
+  'Negotiation',
+  'Active',
+  'Rejected',
+  'No Reply',
+] as const;
+
+export const PARTNER_STAGE_DESCRIPTIONS: Record<string, string> = {
+  'Identified': 'Company mapped, no contact yet',
+  'Presented': 'Intro or presentation shared',
+  'In Dialogue': 'Active discussion or meeting',
+  'Proposal Sent': 'Commercial proposal sent',
+  'Negotiation': 'Terms under discussion',
+  'Active': 'Agreement in place',
+  'Rejected': 'Declined cooperation',
+  'No Reply': 'Multiple attempts, no response',
+};
 
 export const COMPANY_STATUSES = ['New Lead', 'Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed', 'Lost', 'On Hold'] as const;
 export const COMPANY_PRIORITIES = ['High', 'Medium', 'Low'] as const;

@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Search } from 'lucide-react';
-import { COMPANY_STATUSES, COMPANY_PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Plus, Search, HelpCircle } from 'lucide-react';
+import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
 
 export default function Companies() {
   const { data: companies = [], isLoading } = useCompanies();
@@ -23,6 +24,7 @@ export default function Companies() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [formCompanyType, setFormCompanyType] = useState<string>('');
 
   const filtered = useMemo(() => {
     return companies.filter(c => {
@@ -52,7 +54,7 @@ export default function Companies() {
     try {
       await createCompany.mutateAsync({
         company: f.get('company') as string,
-        code: (f.get('code') as string) || null,
+        company_type: (f.get('company_type') as string) || null,
         country: (f.get('country') as string) || null,
         region: (f.get('region') as string) || null,
         vessel_type: (f.get('vessel_type') as string) || null,
@@ -70,9 +72,11 @@ export default function Companies() {
         priority: (f.get('priority') as string) || 'Medium',
         status: 'New Lead',
         fleet_size: Number(f.get('fleet_size')) || null,
+        partner_stage: formCompanyType === 'Sales Partner' ? ((f.get('partner_stage') as string) || null) : null,
         created_by: user?.id || null,
       });
       setDialogOpen(false);
+      setFormCompanyType('');
       toast({ title: 'Company added' });
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -86,7 +90,7 @@ export default function Companies() {
           <h1 className="text-3xl font-display text-foreground">Companies</h1>
           <p className="text-muted-foreground mt-1">{companies.length} companies in pipeline</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setFormCompanyType(''); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Add Company</Button>
           </DialogTrigger>
@@ -97,7 +101,13 @@ export default function Companies() {
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Company *</Label><Input name="company" required /></div>
-                <div className="space-y-2"><Label>Code</Label><Input name="code" /></div>
+                <div className="space-y-2">
+                  <Label>Company Type</Label>
+                  <select name="company_type" value={formCompanyType} onChange={e => setFormCompanyType(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">Select type...</option>
+                    {COMPANY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
                 <div className="space-y-2"><Label>Country</Label><Input name="country" /></div>
                 <div className="space-y-2"><Label>Region</Label><Input name="region" /></div>
                 <div className="space-y-2"><Label>First Name</Label><Input name="first_name" /></div>
@@ -117,6 +127,32 @@ export default function Companies() {
                     {COMPANY_PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
+                {formCompanyType === 'Sales Partner' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label>Partner Stage</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <HelpCircle className="h-3.5 w-3.5" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-72 text-sm space-y-2" align="start">
+                          {PARTNER_STAGES.map(s => (
+                            <div key={s}>
+                              <span className="font-medium text-foreground">{s}</span>
+                              <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                            </div>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <select name="partner_stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                      <option value="">Select stage...</option>
+                      {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="col-span-2 space-y-2"><Label>Next Action</Label><Input name="next_action" /></div>
               </div>
               <Button type="submit" className="w-full" disabled={createCompany.isPending}>
@@ -147,9 +183,9 @@ export default function Companies() {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Company</TableHead>
+                <TableHead className="font-semibold">Type</TableHead>
                 <TableHead className="font-semibold">Contact</TableHead>
                 <TableHead className="font-semibold">Country</TableHead>
-                <TableHead className="font-semibold">Region</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
                 <TableHead className="font-semibold">Priority</TableHead>
                 <TableHead className="font-semibold text-right">Fleet</TableHead>
@@ -165,12 +201,12 @@ export default function Companies() {
                 filtered.map(c => (
                   <TableRow key={c.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/companies/${c.id}`)}>
                     <TableCell className="font-medium">{c.company}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                     <TableCell>
                       <div className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(' ') || '—'}</div>
                       {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
                     </TableCell>
                     <TableCell className="text-sm">{c.country || '—'}</TableCell>
-                    <TableCell className="text-sm">{c.region || '—'}</TableCell>
                     <TableCell>
                       <Select value={c.status} onValueChange={v => { handleStatusChange(c.id, v); }}>
                         <SelectTrigger className="w-auto border-0 p-0 h-auto shadow-none" onClick={e => e.stopPropagation()}>
