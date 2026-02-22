@@ -1,0 +1,198 @@
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCompanies, useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Plus, Search } from 'lucide-react';
+import { COMPANY_STATUSES, COMPANY_PRIORITIES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+
+export default function Companies() {
+  const { data: companies = [], isLoading } = useCompanies();
+  const createCompany = useCreateCompany();
+  const updateCompany = useUpdateCompany();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const filtered = useMemo(() => {
+    return companies.filter(c => {
+      const q = search.toLowerCase();
+      const matchSearch = !search ||
+        c.company.toLowerCase().includes(q) ||
+        c.first_name?.toLowerCase().includes(q) ||
+        c.last_name?.toLowerCase().includes(q) ||
+        c.country?.toLowerCase().includes(q) ||
+        c.region?.toLowerCase().includes(q);
+      const matchStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [companies, search, statusFilter]);
+
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      await updateCompany.mutateAsync({ id, status });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    try {
+      await createCompany.mutateAsync({
+        company: f.get('company') as string,
+        code: (f.get('code') as string) || null,
+        country: (f.get('country') as string) || null,
+        region: (f.get('region') as string) || null,
+        vessel_type: (f.get('vessel_type') as string) || null,
+        vessel_segment: (f.get('vessel_segment') as string) || null,
+        size: (f.get('size') as string) || null,
+        role: (f.get('role') as string) || null,
+        website: (f.get('website') as string) || null,
+        first_name: (f.get('first_name') as string) || null,
+        last_name: (f.get('last_name') as string) || null,
+        source: (f.get('source') as string) || null,
+        email: (f.get('email') as string) || null,
+        phone: (f.get('phone') as string) || null,
+        last_contact_date: null,
+        next_action: (f.get('next_action') as string) || null,
+        priority: (f.get('priority') as string) || 'Medium',
+        status: 'New Lead',
+        fleet_size: Number(f.get('fleet_size')) || null,
+        created_by: user?.id || null,
+      });
+      setDialogOpen(false);
+      toast({ title: 'Company added' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-display text-foreground">Companies</h1>
+          <p className="text-muted-foreground mt-1">{companies.length} companies in pipeline</p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button><Plus className="h-4 w-4 mr-2" /> Add Company</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-display">Add New Company</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Company *</Label><Input name="company" required /></div>
+                <div className="space-y-2"><Label>Code</Label><Input name="code" /></div>
+                <div className="space-y-2"><Label>Country</Label><Input name="country" /></div>
+                <div className="space-y-2"><Label>Region</Label><Input name="region" /></div>
+                <div className="space-y-2"><Label>First Name</Label><Input name="first_name" /></div>
+                <div className="space-y-2"><Label>Last Name</Label><Input name="last_name" /></div>
+                <div className="space-y-2"><Label>Email</Label><Input name="email" type="email" /></div>
+                <div className="space-y-2"><Label>Phone</Label><Input name="phone" /></div>
+                <div className="space-y-2"><Label>Vessel Type</Label><Input name="vessel_type" /></div>
+                <div className="space-y-2"><Label>Vessel Segment</Label><Input name="vessel_segment" /></div>
+                <div className="space-y-2"><Label>Fleet Size</Label><Input name="fleet_size" type="number" /></div>
+                <div className="space-y-2"><Label>Size</Label><Input name="size" /></div>
+                <div className="space-y-2"><Label>Role</Label><Input name="role" /></div>
+                <div className="space-y-2"><Label>Website</Label><Input name="website" /></div>
+                <div className="space-y-2"><Label>Source</Label><Input name="source" /></div>
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <select name="priority" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    {COMPANY_PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2 space-y-2"><Label>Next Action</Label><Input name="next_action" /></div>
+              </div>
+              <Button type="submit" className="w-full" disabled={createCompany.isPending}>
+                {createCompany.isPending ? 'Adding...' : 'Add Company'}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search company, contact, country, region..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="font-semibold">Company</TableHead>
+                <TableHead className="font-semibold">Contact</TableHead>
+                <TableHead className="font-semibold">Country</TableHead>
+                <TableHead className="font-semibold">Region</TableHead>
+                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">Priority</TableHead>
+                <TableHead className="font-semibold text-right">Fleet</TableHead>
+                <TableHead className="font-semibold">Last Contact</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
+              ) : (
+                filtered.map(c => (
+                  <TableRow key={c.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/companies/${c.id}`)}>
+                    <TableCell className="font-medium">{c.company}</TableCell>
+                    <TableCell>
+                      <div className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(' ') || '—'}</div>
+                      {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
+                    </TableCell>
+                    <TableCell className="text-sm">{c.country || '—'}</TableCell>
+                    <TableCell className="text-sm">{c.region || '—'}</TableCell>
+                    <TableCell>
+                      <Select value={c.status} onValueChange={v => { handleStatusChange(c.id, v); }}>
+                        <SelectTrigger className="w-auto border-0 p-0 h-auto shadow-none" onClick={e => e.stopPropagation()}>
+                          <Badge variant="outline" className={`${STATUS_COLORS[c.status] || ''} text-xs font-medium border`}>{c.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`${PRIORITY_COLORS[c.priority] || ''} text-xs font-medium border-transparent`}>{c.priority}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{c.last_contact_date || '—'}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}

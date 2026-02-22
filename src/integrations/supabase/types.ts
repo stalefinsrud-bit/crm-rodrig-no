@@ -14,6 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_text: string
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_system_generated: boolean
+        }
+        Insert: {
+          activity_text: string
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system_generated?: boolean
+        }
+        Update: {
+          activity_text?: string
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system_generated?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          code: string | null
+          company: string
+          country: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          first_name: string | null
+          fleet_size: number | null
+          id: string
+          last_contact_date: string | null
+          last_name: string | null
+          next_action: string | null
+          phone: string | null
+          priority: string
+          region: string | null
+          role: string | null
+          size: string | null
+          source: string | null
+          status: string
+          updated_at: string
+          vessel_segment: string | null
+          vessel_type: string | null
+          website: string | null
+        }
+        Insert: {
+          code?: string | null
+          company: string
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name?: string | null
+          fleet_size?: number | null
+          id?: string
+          last_contact_date?: string | null
+          last_name?: string | null
+          next_action?: string | null
+          phone?: string | null
+          priority?: string
+          region?: string | null
+          role?: string | null
+          size?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          vessel_segment?: string | null
+          vessel_type?: string | null
+          website?: string | null
+        }
+        Update: {
+          code?: string | null
+          company?: string
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name?: string | null
+          fleet_size?: number | null
+          id?: string
+          last_contact_date?: string | null
+          last_name?: string | null
+          next_action?: string | null
+          phone?: string | null
+          priority?: string
+          region?: string | null
+          role?: string | null
+          size?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          vessel_segment?: string | null
+          vessel_type?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -139,6 +255,13 @@ export type Database = {
       }
     }
     Enums: {
+      activity_type:
+        | "email"
+        | "phone"
+        | "meeting"
+        | "linkedin"
+        | "presentation"
+        | "internal"
       app_role: "admin" | "user"
       prospect_list:
         | "December 2025 – Dealers/Partners"
@@ -280,6 +403,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_type: [
+        "email",
+        "phone",
+        "meeting",
+        "linkedin",
+        "presentation",
+        "internal",
+      ],
       app_role: ["admin", "user"],
       prospect_list: [
         "December 2025 – Dealers/Partners",

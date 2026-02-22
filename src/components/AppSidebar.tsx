@@ -16,7 +16,7 @@ import {
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Prospects', url: '/prospects', icon: Users },
+  { title: 'Companies', url: '/companies', icon: Users },
   { title: 'Call Mode', url: '/call-mode', icon: Phone },
   { title: 'Forecast', url: '/forecast', icon: TrendingUp },
   { title: 'Board Report', url: '/report', icon: FileText },
