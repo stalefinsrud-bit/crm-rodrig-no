@@ -52,6 +52,42 @@ export type Database = {
           },
         ]
       }
+      board_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filters: Json
+          funnel_data: Json
+          id: string
+          kpi_data: Json
+          partner_conversion_rate: number | null
+          snapshot_date: string
+          total_pipeline: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json
+          funnel_data?: Json
+          id?: string
+          kpi_data?: Json
+          partner_conversion_rate?: number | null
+          snapshot_date?: string
+          total_pipeline?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json
+          funnel_data?: Json
+          id?: string
+          kpi_data?: Json
+          partner_conversion_rate?: number | null
+          snapshot_date?: string
+          total_pipeline?: number
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           company: string
