@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2 } from 'lucide-react';
-import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag } from 'lucide-react';
+import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
 import type { ActivityType } from '@/types/company';
 import { format } from 'date-fns';
 
@@ -49,6 +50,7 @@ export default function CompanyDetail() {
   }
 
   const contactName = [company.first_name, company.last_name].filter(Boolean).join(' ');
+  const isSalesPartner = company.company_type === 'Sales Partner';
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -58,7 +60,10 @@ export default function CompanyDetail() {
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-display text-foreground">{company.company}</h1>
-          <p className="text-muted-foreground">{company.country}{company.region ? ` • ${company.region}` : ''}</p>
+          <p className="text-muted-foreground">
+            {company.company_type && <span>{company.company_type} • </span>}
+            {company.country}{company.region ? ` • ${company.region}` : ''}
+          </p>
         </div>
         <Badge variant="outline" className={`${STATUS_COLORS[company.status] || ''} text-sm`}>
           {company.status}
@@ -78,7 +83,7 @@ export default function CompanyDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            {company.code && <InfoRow icon={Building2} label="Code" value={company.code} />}
+            {company.company_type && <InfoRow icon={Tag} label="Type" value={company.company_type} />}
             {contactName && <InfoRow icon={User} label="Contact" value={contactName} />}
             {company.email && <InfoRow icon={Mail} label="Email" value={company.email} />}
             {company.phone && <InfoRow icon={Phone} label="Phone" value={company.phone} />}
@@ -89,6 +94,29 @@ export default function CompanyDetail() {
             {company.size && <InfoRow icon={Building2} label="Size" value={company.size} />}
             {company.role && <InfoRow icon={User} label="Role" value={company.role} />}
             {company.source && <InfoRow icon={Building2} label="Source" value={company.source} />}
+            {isSalesPartner && company.partner_stage && (
+              <div className="pt-2 border-t">
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Partner Stage</p>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <HelpCircle className="h-3 w-3" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 text-sm space-y-2" align="start">
+                      {PARTNER_STAGES.map(s => (
+                        <div key={s}>
+                          <span className="font-medium text-foreground">{s}</span>
+                          <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                        </div>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <p className="text-foreground font-medium">{company.partner_stage}</p>
+              </div>
+            )}
             {company.next_action && (
               <div className="pt-2 border-t">
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Next Action</p>

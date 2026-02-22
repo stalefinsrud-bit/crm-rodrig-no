@@ -54,8 +54,8 @@ export type Database = {
       }
       companies: {
         Row: {
-          code: string | null
           company: string
+          company_type: string | null
           country: string | null
           created_at: string
           created_by: string | null
@@ -66,6 +66,7 @@ export type Database = {
           last_contact_date: string | null
           last_name: string | null
           next_action: string | null
+          partner_stage: string | null
           phone: string | null
           priority: string
           region: string | null
@@ -79,8 +80,8 @@ export type Database = {
           website: string | null
         }
         Insert: {
-          code?: string | null
           company: string
+          company_type?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
@@ -91,6 +92,7 @@ export type Database = {
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null
+          partner_stage?: string | null
           phone?: string | null
           priority?: string
           region?: string | null
@@ -104,8 +106,8 @@ export type Database = {
           website?: string | null
         }
         Update: {
-          code?: string | null
           company?: string
+          company_type?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null
+          partner_stage?: string | null
           phone?: string | null
           priority?: string
           region?: string | null

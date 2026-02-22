@@ -54,7 +54,7 @@ export function useCreateCompany() {
     mutationFn: async (company: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('companies')
-        .insert(company)
+        .insert(company as any)
         .select()
         .single();
       if (error) throw error;
