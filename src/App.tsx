@@ -2,12 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/components/AuthPage";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
-import Prospects from "@/pages/Prospects";
+import Companies from "@/pages/Companies";
+import CompanyDetail from "@/pages/CompanyDetail";
 import CallMode from "@/pages/CallMode";
 import Forecast from "@/pages/Forecast";
 import BoardReport from "@/pages/BoardReport";
@@ -35,7 +36,9 @@ function AuthenticatedRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/prospects" element={<Prospects />} />
+        <Route path="/companies" element={<Companies />} />
+        <Route path="/companies/:id" element={<CompanyDetail />} />
+        <Route path="/prospects" element={<Companies />} />
         <Route path="/call-mode" element={<CallMode />} />
         <Route path="/forecast" element={<Forecast />} />
         <Route path="/report" element={<BoardReport />} />
