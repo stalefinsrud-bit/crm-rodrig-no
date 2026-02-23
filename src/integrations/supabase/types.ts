@@ -90,6 +90,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          code: string | null
           company: string
           company_type: string | null
           country: string | null
@@ -116,6 +117,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          code?: string | null
           company: string
           company_type?: string | null
           country?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          code?: string | null
           company?: string
           company_type?: string | null
           country?: string | null
