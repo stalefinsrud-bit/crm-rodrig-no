@@ -1,27 +1,19 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCompanies, useCreateCompany, useUpdateCompany } from "@/hooks/useCompanies";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Search, HelpCircle } from "lucide-react";
-import {
-  COMPANY_STATUSES,
-  COMPANY_PRIORITIES,
-  COMPANY_TYPES,
-  PARTNER_STAGES,
-  PARTNER_STAGE_DESCRIPTIONS,
-  STATUS_COLORS,
-  PRIORITY_COLORS,
-} from "@/types/company";
-import CsvImportDialog from "@/components/CsvImportDialog";
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCompanies, useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Plus, Search, HelpCircle } from 'lucide-react';
+import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import CsvImportDialog from '@/components/CsvImportDialog';
 
 export default function Companies() {
   const { data: companies = [], isLoading } = useCompanies();
@@ -30,22 +22,21 @@ export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formCompanyType, setFormCompanyType] = useState<string>("");
+  const [formCompanyType, setFormCompanyType] = useState<string>('');
 
   const filtered = useMemo(() => {
-    return companies.filter((c) => {
+    return companies.filter(c => {
       const q = search.toLowerCase();
-      const matchSearch =
-        !search ||
+      const matchSearch = !search ||
         c.company.toLowerCase().includes(q) ||
         c.first_name?.toLowerCase().includes(q) ||
         c.last_name?.toLowerCase().includes(q) ||
         c.country?.toLowerCase().includes(q) ||
         c.region?.toLowerCase().includes(q);
-      const matchStatus = statusFilter === "all" || c.status === statusFilter;
+      const matchStatus = statusFilter === 'all' || c.status === statusFilter;
       return matchSearch && matchStatus;
     });
   }, [companies, search, statusFilter]);
@@ -54,7 +45,7 @@ export default function Companies() {
     try {
       await updateCompany.mutateAsync({ id, status });
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -64,33 +55,33 @@ export default function Companies() {
     try {
       await createCompany.mutateAsync({
         code: null,
-        company: f.get("company") as string,
-        company_type: (f.get("company_type") as string) || null,
-        country: (f.get("country") as string) || null,
-        region: (f.get("region") as string) || null,
-        vessel_type: (f.get("vessel_type") as string) || null,
-        vessel_segment: (f.get("vessel_segment") as string) || null,
-        size: (f.get("size") as string) || null,
-        role: (f.get("role") as string) || null,
-        website: (f.get("website") as string) || null,
-        first_name: (f.get("first_name") as string) || null,
-        last_name: (f.get("last_name") as string) || null,
-        source: (f.get("source") as string) || null,
-        email: (f.get("email") as string) || null,
-        phone: (f.get("phone") as string) || null,
+        company: f.get('company') as string,
+        company_type: (f.get('company_type') as string) || null,
+        country: (f.get('country') as string) || null,
+        region: (f.get('region') as string) || null,
+        vessel_type: (f.get('vessel_type') as string) || null,
+        vessel_segment: (f.get('vessel_segment') as string) || null,
+        size: (f.get('size') as string) || null,
+        role: (f.get('role') as string) || null,
+        website: (f.get('website') as string) || null,
+        first_name: (f.get('first_name') as string) || null,
+        last_name: (f.get('last_name') as string) || null,
+        source: (f.get('source') as string) || null,
+        email: (f.get('email') as string) || null,
+        phone: (f.get('phone') as string) || null,
         last_contact_date: null,
-        next_action: (f.get("next_action") as string) || null,
-        priority: (f.get("priority") as string) || "Medium",
-        status: "New Lead",
-        fleet_size: Number(f.get("fleet_size")) || null,
-        partner_stage: formCompanyType === "Sales Partner" ? (f.get("partner_stage") as string) || null : null,
+        next_action: (f.get('next_action') as string) || null,
+        priority: (f.get('priority') as string) || 'Medium',
+        status: 'New Lead',
+        fleet_size: Number(f.get('fleet_size')) || null,
+        partner_stage: formCompanyType === 'Sales Partner' ? ((f.get('partner_stage') as string) || null) : null,
         created_by: user?.id || null,
       });
       setDialogOpen(false);
-      setFormCompanyType("");
-      toast({ title: "Company added" });
+      setFormCompanyType('');
+      toast({ title: 'Company added' });
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -102,181 +93,91 @@ export default function Companies() {
           <p className="text-muted-foreground mt-1">{companies.length} companies in pipeline</p>
         </div>
         <div className="flex items-center gap-2">
-          <CsvImportDialog />
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) setFormCompanyType("");
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" /> Add Company
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="font-display">Add New Company</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAdd} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Company *</Label>
-                    <Input name="company" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Company Type</Label>
-                    <select
-                      name="company_type"
-                      value={formCompanyType}
-                      onChange={(e) => setFormCompanyType(e.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="">Select type...</option>
-                      {COMPANY_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Country</Label>
-                    <Input name="country" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Region</Label>
-                    <Input name="region" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
-                    <Input name="first_name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
-                    <Input name="last_name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input name="email" type="email" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone</Label>
-                    <Input name="phone" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Vessel Type</Label>
-                    <Input name="vessel_type" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Vessel Segment</Label>
-                    <Input name="vessel_segment" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Fleet Size</Label>
-                    <Input name="fleet_size" type="number" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Size</Label>
-                    <Input name="size" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Role</Label>
-                    <Input name="role" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Website</Label>
-                    <Input name="website" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Source</Label>
-                    <Input name="source" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Priority</Label>
-                    <select
-                      name="priority"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      {COMPANY_PRIORITIES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {formCompanyType === "Sales Partner" && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1">
-                        <Label>Stage</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              type="button"
-                              className="text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <HelpCircle className="h-3.5 w-3.5" />
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-72 text-sm space-y-2" align="start">
-                            {PARTNER_STAGES.map((s) => (
-                              <div key={s}>
-                                <span className="font-medium text-foreground">{s}</span>
-                                <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
-                              </div>
-                            ))}
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <select
-                        name="partner_stage"
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        <option value="">Select stage...</option>
-                        {PARTNER_STAGES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  <div className="col-span-2 space-y-2">
-                    <Label>Next Action</Label>
-                    <Input name="next_action" />
-                  </div>
+        <CsvImportDialog />
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setFormCompanyType(''); }}>
+          <DialogTrigger asChild>
+            <Button><Plus className="h-4 w-4 mr-2" /> Add Company</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="font-display">Add New Company</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Company *</Label><Input name="company" required /></div>
+                <div className="space-y-2">
+                  <Label>Company Type</Label>
+                  <select name="company_type" value={formCompanyType} onChange={e => setFormCompanyType(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">Select type...</option>
+                    {COMPANY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
                 </div>
-                <Button type="submit" className="w-full" disabled={createCompany.isPending}>
-                  {createCompany.isPending ? "Adding..." : "Add Company"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+                <div className="space-y-2"><Label>Country</Label><Input name="country" /></div>
+                <div className="space-y-2"><Label>Region</Label><Input name="region" /></div>
+                <div className="space-y-2"><Label>First Name</Label><Input name="first_name" /></div>
+                <div className="space-y-2"><Label>Last Name</Label><Input name="last_name" /></div>
+                <div className="space-y-2"><Label>Email</Label><Input name="email" type="email" /></div>
+                <div className="space-y-2"><Label>Phone</Label><Input name="phone" /></div>
+                <div className="space-y-2"><Label>Vessel Type</Label><Input name="vessel_type" /></div>
+                <div className="space-y-2"><Label>Vessel Segment</Label><Input name="vessel_segment" /></div>
+                <div className="space-y-2"><Label>Fleet Size</Label><Input name="fleet_size" type="number" /></div>
+                <div className="space-y-2"><Label>Size</Label><Input name="size" /></div>
+                <div className="space-y-2"><Label>Role</Label><Input name="role" /></div>
+                <div className="space-y-2"><Label>Website</Label><Input name="website" /></div>
+                <div className="space-y-2"><Label>Source</Label><Input name="source" /></div>
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <select name="priority" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    {COMPANY_PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+                {formCompanyType === 'Sales Partner' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Label>Partner Stage</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <HelpCircle className="h-3.5 w-3.5" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-72 text-sm space-y-2" align="start">
+                          {PARTNER_STAGES.map(s => (
+                            <div key={s}>
+                              <span className="font-medium text-foreground">{s}</span>
+                              <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                            </div>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <select name="partner_stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                      <option value="">Select stage...</option>
+                      {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div className="col-span-2 space-y-2"><Label>Next Action</Label><Input name="next_action" /></div>
+              </div>
+              <Button type="submit" className="w-full" disabled={createCompany.isPending}>
+                {createCompany.isPending ? 'Adding...' : 'Add Company'}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search company, contact, country, region..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search company, contact, country, region..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
+          <SelectTrigger className="w-48"><SelectValue placeholder="All statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {COMPANY_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
+            {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -298,68 +199,34 @@ export default function Companies() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                    No companies found.
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
               ) : (
-                filtered.map((c) => (
-                  <TableRow
-                    key={c.id}
-                    className="hover:bg-muted/30 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/companies/${c.id}`)}
-                  >
+                filtered.map(c => (
+                  <TableRow key={c.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/companies/${c.id}`)}>
                     <TableCell className="font-medium">{c.company}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{c.company_type || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                     <TableCell>
-                      <div className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}</div>
+                      <div className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(' ') || '—'}</div>
                       {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
                     </TableCell>
-                    <TableCell className="text-sm">{c.country || "—"}</TableCell>
+                    <TableCell className="text-sm">{c.country || '—'}</TableCell>
                     <TableCell>
-                      <Select
-                        value={c.status}
-                        onValueChange={(v) => {
-                          handleStatusChange(c.id, v);
-                        }}
-                      >
-                        <SelectTrigger
-                          className="w-auto border-0 p-0 h-auto shadow-none"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Badge
-                            variant="outline"
-                            className={`${STATUS_COLORS[c.status] || ""} text-xs font-medium border`}
-                          >
-                            {c.status}
-                          </Badge>
+                      <Select value={c.status} onValueChange={v => { handleStatusChange(c.id, v); }}>
+                        <SelectTrigger className="w-auto border-0 p-0 h-auto shadow-none" onClick={e => e.stopPropagation()}>
+                          <Badge variant="outline" className={`${STATUS_COLORS[c.status] || ''} text-xs font-medium border`}>{c.status}</Badge>
                         </SelectTrigger>
                         <SelectContent>
-                          {COMPANY_STATUSES.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ))}
+                          {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`${PRIORITY_COLORS[c.priority] || ""} text-xs font-medium border-transparent`}
-                      >
-                        {c.priority}
-                      </Badge>
+                      <Badge variant="outline" className={`${PRIORITY_COLORS[c.priority] || ''} text-xs font-medium border-transparent`}>{c.priority}</Badge>
                     </TableCell>
-                    <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? "—"}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{c.last_contact_date || "—"}</TableCell>
+                    <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{c.last_contact_date || '—'}</TableCell>
                   </TableRow>
                 ))
               )}
