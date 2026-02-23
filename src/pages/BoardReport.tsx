@@ -1,29 +1,39 @@
-import { useMemo, useState, useRef, useCallback } from 'react';
-import { useCompanies } from '@/hooks/useCompanies';
-import { useSnapshots, useCreateSnapshot } from '@/hooks/useSnapshots';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Download, Anchor, Filter, HelpCircle, Camera, TrendingUp, TrendingDown, Monitor } from 'lucide-react';
-import { format } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { COMPANY_TYPES, COMPANY_STATUSES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
-import { toast } from 'sonner';
+import { useMemo, useState, useRef, useCallback } from "react";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useSnapshots, useCreateSnapshot } from "@/hooks/useSnapshots";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Download, Anchor, Filter, HelpCircle, Camera, TrendingUp, TrendingDown, Monitor } from "lucide-react";
+import { format } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { COMPANY_TYPES, COMPANY_STATUSES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from "@/types/company";
+import { toast } from "sonner";
 
 const MUTED_COLORS = [
-  'hsl(215, 25%, 27%)', 'hsl(215, 20%, 40%)', 'hsl(215, 15%, 53%)',
-  'hsl(215, 12%, 65%)', 'hsl(200, 15%, 45%)', 'hsl(180, 10%, 50%)',
-  'hsl(160, 12%, 42%)', 'hsl(140, 10%, 48%)',
+  "hsl(215, 25%, 27%)",
+  "hsl(215, 20%, 40%)",
+  "hsl(215, 15%, 53%)",
+  "hsl(215, 12%, 65%)",
+  "hsl(200, 15%, 45%)",
+  "hsl(180, 10%, 50%)",
+  "hsl(160, 12%, 42%)",
+  "hsl(140, 10%, 48%)",
 ];
 
 const PARTNER_FUNNEL_COLORS = [
-  'hsl(215, 25%, 20%)', 'hsl(215, 20%, 30%)', 'hsl(200, 18%, 38%)',
-  'hsl(200, 15%, 46%)', 'hsl(180, 12%, 42%)', 'hsl(160, 15%, 38%)',
-  'hsl(0, 15%, 50%)', 'hsl(215, 10%, 60%)',
+  "hsl(215, 25%, 20%)",
+  "hsl(215, 20%, 30%)",
+  "hsl(200, 18%, 38%)",
+  "hsl(200, 15%, 46%)",
+  "hsl(180, 12%, 42%)",
+  "hsl(160, 15%, 38%)",
+  "hsl(0, 15%, 50%)",
+  "hsl(215, 10%, 60%)",
 ];
 
 export default function BoardReport() {
@@ -34,33 +44,33 @@ export default function BoardReport() {
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [boardMode, setBoardMode] = useState(false);
-  const [companyTypeFilter, setCompanyTypeFilter] = useState<string>('all');
-  const [regionFilter, setRegionFilter] = useState<string>('all');
-  const [fleetFilter, setFleetFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [partnerStageFilter, setPartnerStageFilter] = useState<string>('all');
-  const [compareSnapshot, setCompareSnapshot] = useState<string>('none');
+  const [companyTypeFilter, setCompanyTypeFilter] = useState<string>("all");
+  const [regionFilter, setRegionFilter] = useState<string>("all");
+  const [fleetFilter, setFleetFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [partnerStageFilter, setPartnerStageFilter] = useState<string>("all");
+  const [compareSnapshot, setCompareSnapshot] = useState<string>("none");
 
-  const isSalesPartner = companyTypeFilter === 'Sales Partner';
-  const isOperator = companyTypeFilter === 'Ship Operator' || companyTypeFilter === 'Offshore Operator';
-  const isYard = companyTypeFilter === 'Yard';
-  const showVesselCharts = isOperator || isYard || companyTypeFilter === 'all';
-  const showFleetCharts = isOperator || companyTypeFilter === 'all';
+  const isSalesPartner = companyTypeFilter === "Sales Partner";
+  const isOperator = companyTypeFilter === "Ship Operator" || companyTypeFilter === "Offshore Operator";
+  const isYard = companyTypeFilter === "Yard";
+  const showVesselCharts = isOperator || isYard || companyTypeFilter === "all";
+  const showFleetCharts = isOperator || companyTypeFilter === "all";
   const showPartnerFunnel = isSalesPartner;
 
-  const regions = useMemo(() => [...new Set(companies.map(c => c.region).filter(Boolean))].sort(), [companies]);
+  const regions = useMemo(() => [...new Set(companies.map((c) => c.region).filter(Boolean))].sort(), [companies]);
 
   const filtered = useMemo(() => {
-    return companies.filter(c => {
-      if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
-      if (regionFilter !== 'all' && c.region !== regionFilter) return false;
-      if (statusFilter !== 'all' && c.status !== statusFilter) return false;
-      if (partnerStageFilter !== 'all' && c.partner_stage !== partnerStageFilter) return false;
-      if (fleetFilter !== 'all') {
+    return companies.filter((c) => {
+      if (companyTypeFilter !== "all" && c.company_type !== companyTypeFilter) return false;
+      if (regionFilter !== "all" && c.region !== regionFilter) return false;
+      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (partnerStageFilter !== "all" && c.partner_stage !== partnerStageFilter) return false;
+      if (fleetFilter !== "all") {
         const fs = c.fleet_size || 0;
-        if (fleetFilter === 'small' && fs > 10) return false;
-        if (fleetFilter === 'medium' && (fs <= 10 || fs > 50)) return false;
-        if (fleetFilter === 'large' && fs <= 50) return false;
+        if (fleetFilter === "small" && fs > 10) return false;
+        if (fleetFilter === "medium" && (fs <= 10 || fs > 50)) return false;
+        if (fleetFilter === "large" && fs <= 50) return false;
       }
       return true;
     });
@@ -68,44 +78,88 @@ export default function BoardReport() {
 
   const stats = useMemo(() => {
     const total = filtered.length;
-    const contacted = filtered.filter(c => c.status !== 'New Lead').length;
-    const signed = filtered.filter(c => c.status === 'Agreement Signed').length;
-    const lost = filtered.filter(c => c.status === 'Lost').length;
-    const inDialogue = filtered.filter(c => ['Meeting Scheduled', 'Negotiation'].includes(c.status)).length;
+    const contacted = filtered.filter((c) => c.status !== "New Lead").length;
+    const signed = filtered.filter((c) => c.status === "Agreement Signed").length;
+    const lost = filtered.filter((c) => c.status === "Lost").length;
+    const inDialogue = filtered.filter((c) => ["Meeting Scheduled", "Negotiation"].includes(c.status)).length;
     const contactRate = total ? Math.round((contacted / total) * 100) : 0;
     const conversionRate = contacted ? Math.round((signed / contacted) * 100) : 0;
 
     const byStatus: Record<string, number> = {};
-    filtered.forEach(c => { byStatus[c.status] = (byStatus[c.status] || 0) + 1; });
+    filtered.forEach((c) => {
+      byStatus[c.status] = (byStatus[c.status] || 0) + 1;
+    });
 
     const byCountry: Record<string, number> = {};
-    filtered.forEach(c => { byCountry[c.country || 'Unknown'] = (byCountry[c.country || 'Unknown'] || 0) + 1; });
-    const countryData = Object.entries(byCountry).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+    filtered.forEach((c) => {
+      byCountry[c.country || "Unknown"] = (byCountry[c.country || "Unknown"] || 0) + 1;
+    });
+    const countryData = Object.entries(byCountry)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
 
     const byRegion: Record<string, number> = {};
-    filtered.forEach(c => { byRegion[c.region || 'Unknown'] = (byRegion[c.region || 'Unknown'] || 0) + 1; });
-    const regionData = Object.entries(byRegion).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    filtered.forEach((c) => {
+      byRegion[c.region || "Unknown"] = (byRegion[c.region || "Unknown"] || 0) + 1;
+    });
+    const regionData = Object.entries(byRegion)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     const byVesselType: Record<string, number> = {};
-    filtered.forEach(c => { if (c.vessel_type) byVesselType[c.vessel_type] = (byVesselType[c.vessel_type] || 0) + 1; });
-    const vesselTypeData = Object.entries(byVesselType).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    filtered.forEach((c) => {
+      if (c.vessel_type) byVesselType[c.vessel_type] = (byVesselType[c.vessel_type] || 0) + 1;
+    });
+    const vesselTypeData = Object.entries(byVesselType)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     const byVesselSegment: Record<string, number> = {};
-    filtered.forEach(c => { if (c.vessel_segment) byVesselSegment[c.vessel_segment] = (byVesselSegment[c.vessel_segment] || 0) + 1; });
-    const vesselSegmentData = Object.entries(byVesselSegment).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+    filtered.forEach((c) => {
+      if (c.vessel_segment) byVesselSegment[c.vessel_segment] = (byVesselSegment[c.vessel_segment] || 0) + 1;
+    });
+    const vesselSegmentData = Object.entries(byVesselSegment)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
+    const fleetSigned = filtered
+      .filter((c) => c.status === "Agreement Signed")
+      .reduce((s, c) => s + (c.fleet_size || 0), 0);
 
     const byPartnerStage: Record<string, number> = {};
-    filtered.forEach(c => { if (c.partner_stage) byPartnerStage[c.partner_stage] = (byPartnerStage[c.partner_stage] || 0) + 1; });
+    filtered.forEach((c) => {
+      if (c.partner_stage) byPartnerStage[c.partner_stage] = (byPartnerStage[c.partner_stage] || 0) + 1;
+    });
 
     // Partner Conversion Rate: Active / (Presented + In Dialogue + Proposal Sent + Negotiation)
-    const activeCount = byPartnerStage['Active'] || 0;
-    const funnelDenominator = (byPartnerStage['Presented'] || 0) + (byPartnerStage['In Dialogue'] || 0) + (byPartnerStage['Proposal Sent'] || 0) + (byPartnerStage['Negotiation'] || 0);
+    const activeCount = byPartnerStage["Active"] || 0;
+    const funnelDenominator =
+      (byPartnerStage["Presented"] || 0) +
+      (byPartnerStage["In Dialogue"] || 0) +
+      (byPartnerStage["Proposal Sent"] || 0) +
+      (byPartnerStage["Negotiation"] || 0);
     const partnerConversionRate = funnelDenominator > 0 ? Math.round((activeCount / funnelDenominator) * 100) : 0;
 
-    return { total, contacted, signed, lost, inDialogue, contactRate, conversionRate, byStatus, countryData, regionData, vesselTypeData, vesselSegmentData, fleetTotal, fleetSigned, byPartnerStage, partnerConversionRate };
+    return {
+      total,
+      contacted,
+      signed,
+      lost,
+      inDialogue,
+      contactRate,
+      conversionRate,
+      byStatus,
+      countryData,
+      regionData,
+      vesselTypeData,
+      vesselSegmentData,
+      fleetTotal,
+      fleetSigned,
+      byPartnerStage,
+      partnerConversionRate,
+    };
   }, [filtered]);
 
   // Top 10 Priority Accounts
@@ -118,16 +172,16 @@ export default function BoardReport() {
 
   // Snapshot comparison
   const selectedSnapshot = useMemo(() => {
-    if (compareSnapshot === 'none') return null;
-    return snapshots.find(s => s.id === compareSnapshot) || null;
+    if (compareSnapshot === "none") return null;
+    return snapshots.find((s) => s.id === compareSnapshot) || null;
   }, [compareSnapshot, snapshots]);
 
-  const getDelta = (current: number, field: string): { value: number; direction: 'up' | 'down' | 'flat' } | null => {
+  const getDelta = (current: number, field: string): { value: number; direction: "up" | "down" | "flat" } | null => {
     if (!selectedSnapshot) return null;
     const prev = (selectedSnapshot.kpi_data as Record<string, number>)[field];
     if (prev === undefined || prev === null) return null;
     const diff = current - prev;
-    return { value: diff, direction: diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat' };
+    return { value: diff, direction: diff > 0 ? "up" : diff < 0 ? "down" : "flat" };
   };
 
   const handleSaveSnapshot = useCallback(async () => {
@@ -151,19 +205,29 @@ export default function BoardReport() {
       total_pipeline: stats.total,
       created_by: user?.id || null,
     });
-    toast.success('Performance snapshot saved');
-  }, [stats, companyTypeFilter, regionFilter, fleetFilter, statusFilter, partnerStageFilter, isSalesPartner, user, createSnapshot]);
+    toast.success("Performance snapshot saved");
+  }, [
+    stats,
+    companyTypeFilter,
+    regionFilter,
+    fleetFilter,
+    statusFilter,
+    partnerStageFilter,
+    isSalesPartner,
+    user,
+    createSnapshot,
+  ]);
 
   const handleExportPDF = useCallback(async () => {
     const el = reportRef.current;
     if (!el) return;
-    toast.info('Generating PDF...');
+    toast.info("Generating PDF...");
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const { jsPDF } = await import('jspdf');
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#f8f9fb' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#f8f9fb" });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = pageWidth - 20;
@@ -171,41 +235,44 @@ export default function BoardReport() {
       let heightLeft = imgHeight;
       let position = 10;
 
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - 20);
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 20;
 
       while (heightLeft > 0) {
         position = position - (pageHeight - 20);
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - 20);
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 20;
       }
 
-      const dateStr = format(new Date(), 'yyyy-MM-dd');
+      const dateStr = format(new Date(), "yyyy-MM-dd");
       pdf.save(`AWT_Board_Report_${dateStr}.pdf`);
-      toast.success('PDF exported successfully');
+      toast.success("PDF exported successfully");
     } catch (err) {
       console.error(err);
-      toast.error('Failed to generate PDF');
+      toast.error("Failed to generate PDF");
     }
   }, []);
 
   const activeFilters = [
-    companyTypeFilter !== 'all' && `Type: ${companyTypeFilter}`,
-    regionFilter !== 'all' && `Region: ${regionFilter}`,
-    fleetFilter !== 'all' && `Fleet: ${fleetFilter}`,
-    statusFilter !== 'all' && `Status: ${statusFilter}`,
-    partnerStageFilter !== 'all' && `Stage: ${partnerStageFilter}`,
+    companyTypeFilter !== "all" && `Type: ${companyTypeFilter}`,
+    regionFilter !== "all" && `Region: ${regionFilter}`,
+    fleetFilter !== "all" && `Fleet: ${fleetFilter}`,
+    statusFilter !== "all" && `Status: ${statusFilter}`,
+    partnerStageFilter !== "all" && `Stage: ${partnerStageFilter}`,
   ].filter(Boolean);
 
   const DeltaIndicator = ({ current, field }: { current: number; field: string }) => {
     const delta = getDelta(current, field);
     if (!delta) return null;
-    if (delta.direction === 'flat') return null;
+    if (delta.direction === "flat") return null;
     return (
-      <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${delta.direction === 'up' ? 'text-success' : 'text-destructive'}`}>
-        {delta.direction === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-        {delta.direction === 'up' ? '+' : ''}{delta.value}
+      <span
+        className={`inline-flex items-center gap-0.5 text-xs font-medium ${delta.direction === "up" ? "text-success" : "text-destructive"}`}
+      >
+        {delta.direction === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+        {delta.direction === "up" ? "+" : ""}
+        {delta.value}
       </span>
     );
   };
@@ -225,7 +292,13 @@ export default function BoardReport() {
             <Switch checked={boardMode} onCheckedChange={setBoardMode} />
           </div>
           {!boardMode && (
-            <Button variant="outline" size="sm" onClick={handleSaveSnapshot} disabled={createSnapshot.isPending} className="border-border">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveSnapshot}
+              disabled={createSnapshot.isPending}
+              className="border-border"
+            >
               <Camera className="h-4 w-4 mr-1.5" /> Save Snapshot
             </Button>
           )}
@@ -241,22 +314,42 @@ export default function BoardReport() {
           <CardContent className="pt-4 pb-4">
             <div className="flex flex-wrap items-center gap-3">
               <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select value={companyTypeFilter} onValueChange={v => { setCompanyTypeFilter(v); if (v !== 'Sales Partner') setPartnerStageFilter('all'); }}>
-                <SelectTrigger className="w-44 border-border"><SelectValue placeholder="Company Type" /></SelectTrigger>
+              <Select
+                value={companyTypeFilter}
+                onValueChange={(v) => {
+                  setCompanyTypeFilter(v);
+                  if (v !== "Sales Partner") setPartnerStageFilter("all");
+                }}
+              >
+                <SelectTrigger className="w-44 border-border">
+                  <SelectValue placeholder="Company Type" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  {COMPANY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  {COMPANY_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={regionFilter} onValueChange={setRegionFilter}>
-                <SelectTrigger className="w-40 border-border"><SelectValue placeholder="Region" /></SelectTrigger>
+                <SelectTrigger className="w-40 border-border">
+                  <SelectValue placeholder="Region" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Regions</SelectItem>
-                  {regions.map(r => <SelectItem key={r!} value={r!}>{r}</SelectItem>)}
+                  {regions.map((r) => (
+                    <SelectItem key={r!} value={r!}>
+                      {r}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={fleetFilter} onValueChange={setFleetFilter}>
-                <SelectTrigger className="w-40 border-border"><SelectValue placeholder="Fleet Size" /></SelectTrigger>
+                <SelectTrigger className="w-40 border-border">
+                  <SelectValue placeholder="Fleet Size" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Fleets</SelectItem>
                   <SelectItem value="small">≤ 10 vessels</SelectItem>
@@ -265,19 +358,31 @@ export default function BoardReport() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-44 border-border"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectTrigger className="w-44 border-border">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {COMPANY_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {isSalesPartner && (
                 <div className="flex items-center gap-1">
                   <Select value={partnerStageFilter} onValueChange={setPartnerStageFilter}>
-                    <SelectTrigger className="w-44 border-border"><SelectValue placeholder="Partner Stage" /></SelectTrigger>
+                    <SelectTrigger className="w-44 border-border">
+                      <SelectValue placeholder="Stage" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Stages</SelectItem>
-                      {PARTNER_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {PARTNER_STAGES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Popover>
@@ -287,7 +392,7 @@ export default function BoardReport() {
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
-                      {PARTNER_STAGES.map(s => (
+                      {PARTNER_STAGES.map((s) => (
                         <div key={s}>
                           <span className="font-medium text-foreground">{s}</span>
                           <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
@@ -300,12 +405,14 @@ export default function BoardReport() {
               {/* Snapshot comparison selector */}
               {snapshots.length > 0 && (
                 <Select value={compareSnapshot} onValueChange={setCompareSnapshot}>
-                  <SelectTrigger className="w-48 border-border"><SelectValue placeholder="Compare snapshot" /></SelectTrigger>
+                  <SelectTrigger className="w-48 border-border">
+                    <SelectValue placeholder="Compare snapshot" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No comparison</SelectItem>
-                    {snapshots.map(s => (
+                    {snapshots.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {format(new Date(s.snapshot_date), 'MMM d, yyyy HH:mm')}
+                        {format(new Date(s.snapshot_date), "MMM d, yyyy HH:mm")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -328,13 +435,13 @@ export default function BoardReport() {
                 </div>
                 <div>
                   <h2 className="text-xl font-display text-background tracking-tight">AWT Pipeline Report</h2>
-                  <p className="text-background/50 text-sm">{format(new Date(), 'MMMM d, yyyy')}</p>
+                  <p className="text-background/50 text-sm">{format(new Date(), "MMMM d, yyyy")}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-background/40 uppercase tracking-widest">Confidential</p>
                 {activeFilters.length > 0 && (
-                  <p className="text-xs text-background/50 mt-1">{activeFilters.join(' · ')}</p>
+                  <p className="text-xs text-background/50 mt-1">{activeFilters.join(" · ")}</p>
                 )}
               </div>
             </div>
@@ -342,31 +449,48 @@ export default function BoardReport() {
         </Card>
 
         {/* KPI Summary */}
-        <div className={`grid gap-4 ${isSalesPartner ? 'grid-cols-2 md:grid-cols-6' : 'grid-cols-2 md:grid-cols-5'}`}>
+        <div className={`grid gap-4 ${isSalesPartner ? "grid-cols-2 md:grid-cols-6" : "grid-cols-2 md:grid-cols-5"}`}>
           {[
-            { label: 'Total Pipeline', value: stats.total, field: 'total' },
-            { label: 'Contacted', value: stats.contacted, field: 'contacted' },
-            { label: 'In Dialogue', value: stats.inDialogue, field: 'inDialogue' },
-            { label: 'Agreements', value: stats.signed, field: 'signed' },
-            { label: 'Conversion', value: `${stats.conversionRate}%`, field: 'conversionRate', rawValue: stats.conversionRate },
-            ...(isSalesPartner ? [{ label: 'Partner Conv.', value: `${stats.partnerConversionRate}%`, field: 'partnerConversionRate', rawValue: stats.partnerConversionRate }] : []),
-          ].map(kpi => (
+            { label: "Total Pipeline", value: stats.total, field: "total" },
+            { label: "Contacted", value: stats.contacted, field: "contacted" },
+            { label: "In Dialogue", value: stats.inDialogue, field: "inDialogue" },
+            { label: "Agreements", value: stats.signed, field: "signed" },
+            {
+              label: "Conversion",
+              value: `${stats.conversionRate}%`,
+              field: "conversionRate",
+              rawValue: stats.conversionRate,
+            },
+            ...(isSalesPartner
+              ? [
+                  {
+                    label: "Partner Conv.",
+                    value: `${stats.partnerConversionRate}%`,
+                    field: "partnerConversionRate",
+                    rawValue: stats.partnerConversionRate,
+                  },
+                ]
+              : []),
+          ].map((kpi) => (
             <Card key={kpi.label} className="border-border">
               <CardContent className="pt-5 pb-4 text-center">
-                <p className={`font-bold tracking-tight ${boardMode ? 'text-4xl' : 'text-3xl'}`}>{kpi.value}</p>
+                <p className={`font-bold tracking-tight ${boardMode ? "text-4xl" : "text-3xl"}`}>{kpi.value}</p>
                 <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">{kpi.label}</p>
-                <DeltaIndicator current={kpi.rawValue ?? (typeof kpi.value === 'number' ? kpi.value : 0)} field={kpi.field} />
+                <DeltaIndicator
+                  current={kpi.rawValue ?? (typeof kpi.value === "number" ? kpi.value : 0)}
+                  field={kpi.field}
+                />
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Partner Stage Funnel (Sales Partner only) */}
+        {/* Stage Funnel (Sales Partner only) */}
         {showPartnerFunnel && (
           <Card className="border-border">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-display">Partner Stage Funnel</CardTitle>
+                <CardTitle className="text-base font-display">Stage Funnel</CardTitle>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -374,7 +498,7 @@ export default function BoardReport() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
-                    {PARTNER_STAGES.map(s => (
+                    {PARTNER_STAGES.map((s) => (
                       <div key={s}>
                         <span className="font-medium text-foreground">{s}</span>
                         <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
@@ -390,20 +514,26 @@ export default function BoardReport() {
                   const count = stats.byPartnerStage[stage] || 0;
                   const maxVal = Math.max(...Object.values(stats.byPartnerStage), 1);
                   const pct = Math.round((count / maxVal) * 100);
-                  const prevCount = selectedSnapshot ? ((selectedSnapshot.funnel_data as Record<string, number>)[stage] || 0) : null;
+                  const prevCount = selectedSnapshot
+                    ? (selectedSnapshot.funnel_data as Record<string, number>)[stage] || 0
+                    : null;
                   const delta = prevCount !== null ? count - prevCount : null;
                   return (
                     <div key={stage} className="flex items-center gap-3">
                       <span className="text-xs font-medium w-24 text-muted-foreground truncate">{stage}</span>
                       <div className="flex-1 h-7 bg-muted/40 rounded overflow-hidden relative">
-                        <div className="h-full rounded transition-all duration-500" style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: PARTNER_FUNNEL_COLORS[i] }} />
+                        <div
+                          className="h-full rounded transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: PARTNER_FUNNEL_COLORS[i] }}
+                        />
                         <span className="absolute inset-0 flex items-center pl-2 text-xs font-semibold text-background mix-blend-difference">
                           {count}
                         </span>
                       </div>
                       {delta !== null && delta !== 0 && (
-                        <span className={`text-xs font-medium ${delta > 0 ? 'text-success' : 'text-destructive'}`}>
-                          {delta > 0 ? '+' : ''}{delta}
+                        <span className={`text-xs font-medium ${delta > 0 ? "text-success" : "text-destructive"}`}>
+                          {delta > 0 ? "+" : ""}
+                          {delta}
                         </span>
                       )}
                     </div>
@@ -418,42 +548,79 @@ export default function BoardReport() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Regional Distribution */}
           <Card className="border-border">
-            <CardHeader><CardTitle className="text-base font-display">Regional Distribution</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base font-display">Regional Distribution</CardTitle>
+            </CardHeader>
             <CardContent>
               {stats.regionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={stats.regionData} layout="vertical" margin={{ left: 70 }}>
-                    <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                    <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      width={70}
+                      tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(215, 25%, 12%)",
+                        border: "none",
+                        borderRadius: "6px",
+                        color: "#fff",
+                        fontSize: "12px",
+                      }}
+                    />
                     <Bar dataKey="value" fill="hsl(215, 25%, 27%)" radius={[0, 3, 3, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
+              ) : (
+                <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>
+              )}
             </CardContent>
           </Card>
 
           {/* Status Distribution */}
           {!boardMode && (
             <Card className="border-border">
-              <CardHeader><CardTitle className="text-base font-display">Status Distribution</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base font-display">Status Distribution</CardTitle>
+              </CardHeader>
               <CardContent>
                 {Object.keys(stats.byStatus).length > 0 ? (
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
                       <Pie
                         data={Object.entries(stats.byStatus).map(([name, value]) => ({ name, value }))}
-                        dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={95}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={95}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={{ stroke: 'hsl(215, 15%, 55%)' }}
-                        style={{ fontSize: '11px' }}
+                        labelLine={{ stroke: "hsl(215, 15%, 55%)" }}
+                        style={{ fontSize: "11px" }}
                       >
-                        {Object.keys(stats.byStatus).map((_, i) => <Cell key={i} fill={MUTED_COLORS[i % MUTED_COLORS.length]} />)}
+                        {Object.keys(stats.byStatus).map((_, i) => (
+                          <Cell key={i} fill={MUTED_COLORS[i % MUTED_COLORS.length]} />
+                        ))}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(215, 25%, 12%)",
+                          border: "none",
+                          borderRadius: "6px",
+                          color: "#fff",
+                          fontSize: "12px",
+                        }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
-                ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
+                ) : (
+                  <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">
+                    No data
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -461,18 +628,37 @@ export default function BoardReport() {
           {/* Geographic Distribution (board mode shows this instead of status) */}
           {boardMode && (
             <Card className="border-border">
-              <CardHeader><CardTitle className="text-base font-display">Geographic Distribution</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle className="text-base font-display">Geographic Distribution</CardTitle>
+              </CardHeader>
               <CardContent>
                 {stats.countryData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={stats.countryData} layout="vertical" margin={{ left: 70 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={70}
+                        tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(215, 25%, 12%)",
+                          border: "none",
+                          borderRadius: "6px",
+                          color: "#fff",
+                          fontSize: "12px",
+                        }}
+                      />
                       <Bar dataKey="value" fill="hsl(200, 18%, 38%)" radius={[0, 3, 3, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
+                ) : (
+                  <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">
+                    No data
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -483,13 +669,28 @@ export default function BoardReport() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {stats.vesselTypeData.length > 0 && (
               <Card className="border-border">
-                <CardHeader><CardTitle className="text-base font-display">Vessel Type Breakdown</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-base font-display">Vessel Type Breakdown</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={stats.vesselTypeData} layout="vertical" margin={{ left: 80 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={80}
+                        tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(215, 25%, 12%)",
+                          border: "none",
+                          borderRadius: "6px",
+                          color: "#fff",
+                          fontSize: "12px",
+                        }}
+                      />
                       <Bar dataKey="value" fill="hsl(200, 18%, 38%)" radius={[0, 3, 3, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -498,13 +699,28 @@ export default function BoardReport() {
             )}
             {stats.vesselSegmentData.length > 0 && (
               <Card className="border-border">
-                <CardHeader><CardTitle className="text-base font-display">Vessel Segment Breakdown</CardTitle></CardHeader>
+                <CardHeader>
+                  <CardTitle className="text-base font-display">Vessel Segment Breakdown</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={stats.vesselSegmentData} layout="vertical" margin={{ left: 80 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={80}
+                        tick={{ fontSize: 11, fill: "hsl(215, 15%, 55%)" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(215, 25%, 12%)",
+                          border: "none",
+                          borderRadius: "6px",
+                          color: "#fff",
+                          fontSize: "12px",
+                        }}
+                      />
                       <Bar dataKey="value" fill="hsl(180, 12%, 42%)" radius={[0, 3, 3, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -516,19 +732,27 @@ export default function BoardReport() {
 
         {showFleetCharts && stats.fleetTotal > 0 && (
           <Card className="border-border">
-            <CardHeader><CardTitle className="text-base font-display">Fleet Overview</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base font-display">Fleet Overview</CardTitle>
+            </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetTotal.toLocaleString()}</p>
+                  <p className={`font-bold ${boardMode ? "text-3xl" : "text-2xl"}`}>
+                    {stats.fleetTotal.toLocaleString()}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Total Vessels</p>
                 </div>
                 <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetSigned.toLocaleString()}</p>
+                  <p className={`font-bold ${boardMode ? "text-3xl" : "text-2xl"}`}>
+                    {stats.fleetSigned.toLocaleString()}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Vessels Signed</p>
                 </div>
                 <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetTotal ? Math.round((stats.fleetSigned / stats.fleetTotal) * 100) : 0}%</p>
+                  <p className={`font-bold ${boardMode ? "text-3xl" : "text-2xl"}`}>
+                    {stats.fleetTotal ? Math.round((stats.fleetSigned / stats.fleetTotal) * 100) : 0}%
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Penetration</p>
                 </div>
               </div>
@@ -538,36 +762,63 @@ export default function BoardReport() {
 
         {/* Top 10 Priority Accounts */}
         <Card className="border-border">
-          <CardHeader><CardTitle className="text-base font-display">Top 10 Priority Accounts</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base font-display">Top 10 Priority Accounts</CardTitle>
+          </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border">
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Company</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Country</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Priority</TableHead>
-                    {isSalesPartner && <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Partner Stage</TableHead>}
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Company
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Type
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Country
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Priority
+                    </TableHead>
+                    {isSalesPartner && (
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Stage
+                      </TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {top10.length === 0 ? (
-                    <TableRow><TableCell colSpan={isSalesPartner ? 6 : 5} className="text-center py-8 text-muted-foreground text-sm">No companies match filters</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell
+                        colSpan={isSalesPartner ? 6 : 5}
+                        className="text-center py-8 text-muted-foreground text-sm"
+                      >
+                        No companies match filters
+                      </TableCell>
+                    </TableRow>
                   ) : (
-                    top10.map(c => (
+                    top10.map((c) => (
                       <TableRow key={c.id} className="border-border hover:bg-muted/20 transition-colors">
                         <TableCell className="font-medium text-sm">{c.company}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{c.country || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{c.company_type || "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{c.country || "—"}</TableCell>
                         <TableCell className="text-sm">{c.status}</TableCell>
                         <TableCell className="text-sm">
-                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${c.priority === 'High' ? 'bg-destructive/10 text-destructive' : c.priority === 'Medium' ? 'bg-muted text-muted-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${c.priority === "High" ? "bg-destructive/10 text-destructive" : c.priority === "Medium" ? "bg-muted text-muted-foreground" : "bg-muted text-muted-foreground"}`}
+                          >
                             {c.priority}
                           </span>
                         </TableCell>
-                        {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
+                        {isSalesPartner && (
+                          <TableCell className="text-sm text-muted-foreground">{c.partner_stage || "—"}</TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
@@ -580,77 +831,120 @@ export default function BoardReport() {
         {/* Full Pipeline Detail - hidden in board mode */}
         {!boardMode && (
           <Card className="border-border">
-            <CardHeader><CardTitle className="text-base font-display">Pipeline Detail</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-base font-display">Pipeline Detail</CardTitle>
+            </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border">
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Company</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Country</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Region</TableHead>
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
-                      {isSalesPartner && <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Partner Stage</TableHead>}
-                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Fleet</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Company
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Type
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Country
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Region
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Status
+                      </TableHead>
+                      {isSalesPartner && (
+                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Stage
+                        </TableHead>
+                      )}
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">
+                        Fleet
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.length === 0 ? (
-                      <TableRow><TableCell colSpan={isSalesPartner ? 7 : 6} className="text-center py-8 text-muted-foreground text-sm">No companies match filters</TableCell></TableRow>
+                      <TableRow>
+                        <TableCell
+                          colSpan={isSalesPartner ? 7 : 6}
+                          className="text-center py-8 text-muted-foreground text-sm"
+                        >
+                          No companies match filters
+                        </TableCell>
+                      </TableRow>
                     ) : (
-                      filtered.slice(0, 30).map(c => (
+                      filtered.slice(0, 30).map((c) => (
                         <TableRow key={c.id} className="border-border hover:bg-muted/20 transition-colors">
                           <TableCell className="font-medium text-sm">{c.company}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{c.country || '—'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{c.region || '—'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{c.company_type || "—"}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{c.country || "—"}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{c.region || "—"}</TableCell>
                           <TableCell className="text-sm">{c.status}</TableCell>
-                          {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
-                          <TableCell className="text-right font-mono text-sm text-muted-foreground">{c.fleet_size ?? '—'}</TableCell>
+                          {isSalesPartner && (
+                            <TableCell className="text-sm text-muted-foreground">{c.partner_stage || "—"}</TableCell>
+                          )}
+                          <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                            {c.fleet_size ?? "—"}
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
                   </TableBody>
                 </Table>
               </div>
-              {filtered.length > 30 && <p className="text-xs text-muted-foreground mt-3 text-center">Showing 30 of {filtered.length}</p>}
+              {filtered.length > 30 && (
+                <p className="text-xs text-muted-foreground mt-3 text-center">Showing 30 of {filtered.length}</p>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Strategic Insights / Executive Summary */}
         <Card className="border-border">
-          <CardHeader><CardTitle className="text-base font-display">Strategic Insights</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base font-display">Strategic Insights</CardTitle>
+          </CardHeader>
           <CardContent>
             <div className="prose prose-sm max-w-none text-foreground/80 text-sm leading-relaxed space-y-3">
               <p>
-                As of {format(new Date(), 'MMMM d, yyyy')}, the pipeline comprises{' '}
+                As of {format(new Date(), "MMMM d, yyyy")}, the pipeline comprises{" "}
                 <strong className="text-foreground">{stats.total} companies</strong>
-                {companyTypeFilter !== 'all' && <> (filtered to {companyTypeFilter})</>}.
-                Contact rate stands at <strong className="text-foreground">{stats.contactRate}%</strong> with
-                a conversion rate of <strong className="text-foreground">{stats.conversionRate}%</strong>.
+                {companyTypeFilter !== "all" && <> (filtered to {companyTypeFilter})</>}. Contact rate stands at{" "}
+                <strong className="text-foreground">{stats.contactRate}%</strong> with a conversion rate of{" "}
+                <strong className="text-foreground">{stats.conversionRate}%</strong>.
               </p>
               <p>
-                Currently <strong className="text-foreground">{stats.inDialogue}</strong> companies are in active dialogue,
-                with <strong className="text-foreground">{stats.signed} agreements</strong> signed
+                Currently <strong className="text-foreground">{stats.inDialogue}</strong> companies are in active
+                dialogue, with <strong className="text-foreground">{stats.signed} agreements</strong> signed
                 {stats.lost > 0 && <> and {stats.lost} marked as lost</>}.
               </p>
               {isSalesPartner && stats.partnerConversionRate > 0 && (
                 <p>
-                  Partner conversion rate is at <strong className="text-foreground">{stats.partnerConversionRate}%</strong>,
-                  with {stats.byPartnerStage['Active'] || 0} active partners out of {
-                    (stats.byPartnerStage['Presented'] || 0) + (stats.byPartnerStage['In Dialogue'] || 0) +
-                    (stats.byPartnerStage['Proposal Sent'] || 0) + (stats.byPartnerStage['Negotiation'] || 0)
-                  } in the pipeline.
+                  Partner conversion rate is at{" "}
+                  <strong className="text-foreground">{stats.partnerConversionRate}%</strong>, with{" "}
+                  {stats.byPartnerStage["Active"] || 0} active partners out of{" "}
+                  {(stats.byPartnerStage["Presented"] || 0) +
+                    (stats.byPartnerStage["In Dialogue"] || 0) +
+                    (stats.byPartnerStage["Proposal Sent"] || 0) +
+                    (stats.byPartnerStage["Negotiation"] || 0)}{" "}
+                  in the pipeline.
                 </p>
               )}
               {selectedSnapshot && (
                 <p className="border-t border-border pt-3 mt-3">
-                  Compared to snapshot from <strong className="text-foreground">{format(new Date(selectedSnapshot.snapshot_date), 'MMM d, yyyy')}</strong>:
-                  Pipeline {stats.total >= (selectedSnapshot.kpi_data as Record<string, number>).total ? 'grew' : 'decreased'} by{' '}
-                  <strong className="text-foreground">{Math.abs(stats.total - ((selectedSnapshot.kpi_data as Record<string, number>).total || 0))}</strong> companies.
-                  Agreements moved from {(selectedSnapshot.kpi_data as Record<string, number>).signed || 0} to {stats.signed}.
+                  Compared to snapshot from{" "}
+                  <strong className="text-foreground">
+                    {format(new Date(selectedSnapshot.snapshot_date), "MMM d, yyyy")}
+                  </strong>
+                  : Pipeline{" "}
+                  {stats.total >= (selectedSnapshot.kpi_data as Record<string, number>).total ? "grew" : "decreased"} by{" "}
+                  <strong className="text-foreground">
+                    {Math.abs(stats.total - ((selectedSnapshot.kpi_data as Record<string, number>).total || 0))}
+                  </strong>{" "}
+                  companies. Agreements moved from {(selectedSnapshot.kpi_data as Record<string, number>).signed || 0}{" "}
+                  to {stats.signed}.
                 </p>
               )}
             </div>
