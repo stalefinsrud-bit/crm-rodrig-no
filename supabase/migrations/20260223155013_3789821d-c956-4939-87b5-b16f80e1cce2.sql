@@ -1,0 +1,1 @@
+ALTER TABLE public.companies ADD COLUMN strategic_insight text;

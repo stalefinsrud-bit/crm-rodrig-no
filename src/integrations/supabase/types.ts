@@ -111,6 +111,7 @@ export type Database = {
           size: string | null
           source: string | null
           status: string
+          strategic_insight: string | null
           updated_at: string
           vessel_segment: string | null
           vessel_type: string | null
@@ -138,6 +139,7 @@ export type Database = {
           size?: string | null
           source?: string | null
           status?: string
+          strategic_insight?: string | null
           updated_at?: string
           vessel_segment?: string | null
           vessel_type?: string | null
@@ -165,6 +167,7 @@ export type Database = {
           size?: string | null
           source?: string | null
           status?: string
+          strategic_insight?: string | null
           updated_at?: string
           vessel_segment?: string | null
           vessel_type?: string | null

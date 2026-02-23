@@ -31,6 +31,7 @@ interface ParsedRow {
   priority: string;
   status: string;
   fleet_size: number | null;
+  strategic_insight: string | null;
 }
 
 interface ValidationResult {
@@ -71,6 +72,8 @@ const CSV_FIELD_MAP: Record<string, keyof ParsedRow> = {
   'status': 'status',
   'fleet size': 'fleet_size',
   'fleet_size': 'fleet_size',
+  'strategic insight': 'strategic_insight',
+  'strategic_insight': 'strategic_insight',
 };
 
 function parseCsvLine(line: string): string[] {
@@ -144,6 +147,7 @@ function parseCsv(text: string): ParsedRow[] {
       priority: get('priority') || 'Medium',
       status: get('status') || 'New Lead',
       fleet_size: fleetStr ? parseInt(fleetStr, 10) || null : null,
+      strategic_insight: get('strategic_insight') || null,
     };
   });
 }
@@ -212,6 +216,7 @@ export default function CsvImportDialog() {
         priority: row.priority,
         status: row.status,
         fleet_size: row.fleet_size,
+        strategic_insight: row.strategic_insight,
         created_by: user.id,
       }));
 

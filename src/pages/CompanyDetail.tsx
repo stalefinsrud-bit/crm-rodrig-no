@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag } from 'lucide-react';
+import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag, Lightbulb } from 'lucide-react';
 import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
 import type { ActivityType } from '@/types/company';
 import { format } from 'date-fns';
@@ -121,6 +121,14 @@ export default function CompanyDetail() {
               <div className="pt-2 border-t">
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Next Action</p>
                 <p className="text-foreground">{company.next_action}</p>
+              </div>
+            )}
+            {company.strategic_insight && (
+              <div className="pt-2 border-t">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1 flex items-center gap-1">
+                  <Lightbulb className="h-3 w-3" /> Strategic Insight
+                </p>
+                <p className="text-foreground whitespace-pre-wrap">{company.strategic_insight}</p>
               </div>
             )}
             {company.last_contact_date && (

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -70,6 +71,7 @@ export default function Companies() {
         phone: (f.get('phone') as string) || null,
         last_contact_date: null,
         next_action: (f.get('next_action') as string) || null,
+        strategic_insight: (f.get('strategic_insight') as string) || null,
         priority: (f.get('priority') as string) || 'Medium',
         status: 'New Lead',
         fleet_size: Number(f.get('fleet_size')) || null,
@@ -138,6 +140,7 @@ export default function Companies() {
                   </select>
                 </div>
                 <div className="col-span-2 space-y-2"><Label>Next Action</Label><Input name="next_action" /></div>
+                <div className="col-span-2 space-y-2"><Label>Strategic Insight</Label><Textarea name="strategic_insight" rows={3} placeholder="Optional strategic notes..." /></div>
               </div>
               <Button type="submit" className="w-full" disabled={createCompany.isPending}>
                 {createCompany.isPending ? 'Adding...' : 'Add Company'}
