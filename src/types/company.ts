@@ -21,6 +21,7 @@ export interface Company {
   status: string;
   fleet_size: number | null;
   partner_stage: string | null;
+  strategic_insight: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
