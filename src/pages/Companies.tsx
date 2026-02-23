@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Search, AlertTriangle, Trash2, RotateCcw, Eye } from 'lucide-react';
+import { Plus, Search, AlertTriangle, Trash2, RotateCcw, Eye, Pencil } from 'lucide-react';
 import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
 import CsvImportDialog from '@/components/CsvImportDialog';
 
@@ -291,14 +291,14 @@ export default function Companies() {
                 <TableHead className="font-semibold">Priority</TableHead>
                 <TableHead className="font-semibold text-right">Fleet</TableHead>
                 <TableHead className="font-semibold">Last Contact</TableHead>
-                {isAdmin && <TableHead className="font-semibold w-20">Actions</TableHead>}
+                <TableHead className="font-semibold w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
               ) : (
                 filtered.map(c => (
                   <TableRow
@@ -335,19 +335,26 @@ export default function Companies() {
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{c.last_contact_date || '—'}</TableCell>
-                    {isAdmin && (
-                      <TableCell>
-                        {c.is_deleted ? (
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => { e.stopPropagation(); handleRestore(c.id); }} title="Restore">
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={e => { e.stopPropagation(); handleSoftDelete(c.id); }} title="Archive">
-                            <Trash2 className="h-4 w-4" />
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {!c.is_deleted && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => { e.stopPropagation(); navigate(`/companies/${c.id}`); }} title="Edit">
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         )}
-                      </TableCell>
-                    )}
+                        {isAdmin && (
+                          c.is_deleted ? (
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => { e.stopPropagation(); handleRestore(c.id); }} title="Restore">
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={e => { e.stopPropagation(); handleSoftDelete(c.id); }} title="Archive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
