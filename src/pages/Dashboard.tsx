@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Users, Phone, Handshake, TrendingUp, DollarSign, Globe, Ship, BarChart3, Filter, Calendar } from 'lucide-react';
+import { Users, Phone, Handshake, TrendingUp, BarChart3, Filter, Target, Zap, MessageSquare, FileText } from 'lucide-react';
 import { KPICard } from '@/components/KPICard';
 import { useCompanies, useAllActivities } from '@/hooks/useCompanies';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,18 +21,19 @@ const FUNNEL_COLORS = [
 ];
 
 const TRAFFIC_LIGHT: Record<string, { color: string; label: string }> = {
-  'New Lead': { color: 'bg-destructive', label: 'Red' },
-  'Contacted': { color: 'bg-warning', label: 'Yellow' },
-  'Meeting Scheduled': { color: 'bg-success', label: 'Green' },
-  'Negotiation': { color: 'bg-success', label: 'Green' },
-  'Proposal Sent': { color: 'bg-info', label: 'Blue' },
-  'Agreement Signed': { color: 'bg-emerald-800', label: 'Dark Green' },
-  'Lost': { color: 'bg-muted-foreground', label: 'Grey' },
-  'On Hold': { color: 'bg-muted-foreground', label: 'Grey' },
+  'New Lead': { color: 'bg-destructive', label: 'Not Contacted' },
+  'Contacted': { color: 'bg-warning', label: 'Contacted – No Response' },
+  'Meeting Scheduled': { color: 'bg-success', label: 'Responded / Dialogue' },
+  'Negotiation': { color: 'bg-success', label: 'Responded / Dialogue' },
+  'Proposal Sent': { color: 'bg-info', label: 'Proposal' },
+  'Agreement Signed': { color: 'bg-emerald-800', label: 'Signed' },
+  'Lost': { color: 'bg-muted-foreground', label: 'Lost' },
+  'On Hold': { color: 'bg-muted-foreground', label: 'On Hold' },
 };
 
 const RESPONDED_STATUSES = ['Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed'];
 const DIALOGUE_STATUSES = ['Meeting Scheduled', 'Negotiation'];
+const PROPOSAL_STATUSES = ['Proposal Sent', 'Negotiation', 'Agreement Signed'];
 const CONTACTED_STATUSES = ['Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed'];
 
 export default function Dashboard() {
@@ -67,26 +68,28 @@ export default function Dashboard() {
     });
   }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyTypeFilter, stageFilter, companyIdsWithActivityType]);
 
-  const meetingCount = useMemo(() =>
-    allActivities.filter(a => a.activity_type === 'meeting').length
-  , [allActivities]);
-
   const stats = useMemo(() => {
-    const total = filtered.length;
+    const identified = filtered.length;
     const contacted = filtered.filter(c => CONTACTED_STATUSES.includes(c.status)).length;
     const responded = filtered.filter(c => RESPONDED_STATUSES.includes(c.status)).length;
     const dialogue = filtered.filter(c => DIALOGUE_STATUSES.includes(c.status)).length;
+    const proposal = filtered.filter(c => PROPOSAL_STATUSES.includes(c.status)).length;
     const signed = filtered.filter(c => c.status === 'Agreement Signed').length;
+
     const hitRate = contacted ? Math.round((responded / contacted) * 100) : 0;
+    const conversionRate = contacted ? ((signed / contacted) * 100).toFixed(1) : '0';
+    const engagementRate = contacted ? Math.round(((responded + dialogue + proposal) / contacted) * 100) : 0;
+
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
     const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
     const fleetPenetration = fleetTotal ? Math.round((fleetSigned / fleetTotal) * 100) : 0;
 
     const funnelData = [
-      { name: 'Identified', value: total, fill: FUNNEL_COLORS[0] },
+      { name: 'Identified', value: identified, fill: FUNNEL_COLORS[0] },
       { name: 'Contacted', value: contacted, fill: FUNNEL_COLORS[1] },
       { name: 'Responded', value: responded, fill: FUNNEL_COLORS[2] },
       { name: 'Dialogue', value: dialogue, fill: FUNNEL_COLORS[3] },
+      { name: 'Proposal', value: proposal, fill: FUNNEL_COLORS[4] },
       { name: 'Signed', value: signed, fill: FUNNEL_COLORS[5] },
     ];
 
@@ -98,7 +101,7 @@ export default function Dashboard() {
     filtered.forEach(c => { byStatus[c.status] = (byStatus[c.status] || 0) + 1; });
     const statusData = Object.entries(byStatus).map(([name, value]) => ({ name, value }));
 
-    return { total, contacted, responded, dialogue, signed, hitRate, fleetTotal, fleetSigned, fleetPenetration, funnelData, countryData, statusData };
+    return { identified, contacted, responded, dialogue, proposal, signed, hitRate, conversionRate, engagementRate, fleetTotal, fleetSigned, fleetPenetration, funnelData, countryData, statusData };
   }, [filtered]);
 
   if (isLoading) {
@@ -115,7 +118,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Performance & hit rate analytics</p>
+          <p className="text-muted-foreground mt-1">Performance funnel & hit rate analytics</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Filter className="h-4 w-4 text-muted-foreground" />
@@ -171,38 +174,51 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KPICard title="Total Companies" value={stats.total} icon={Users} />
+      {/* Performance KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+        <KPICard title="Identified" value={stats.identified} icon={Users} />
         <KPICard title="Contacted" value={stats.contacted} icon={Phone} variant="info" />
-        <KPICard title="In Dialogue" value={stats.dialogue} icon={TrendingUp} variant="accent" />
-        <KPICard title="Closed" value={stats.signed} icon={Handshake} variant="success" />
-        <KPICard title="Meetings Held" value={meetingCount} icon={Calendar} variant="info" />
-        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={BarChart3} variant="accent" subtitle="Meetings / Contacted" />
+        <KPICard title="Responded" value={stats.responded} icon={MessageSquare} variant="accent" />
+        <KPICard title="Dialogue" value={stats.dialogue} icon={TrendingUp} variant="accent" />
+        <KPICard title="Signed" value={stats.signed} icon={Handshake} variant="success" />
+        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={Target} variant="info" subtitle="Responded / Contacted" />
+        <KPICard title="Conversion" value={`${stats.conversionRate}%`} icon={Zap} variant="success" subtitle="Signed / Contacted" />
+        <KPICard title="Engagement" value={`${stats.engagementRate}%`} icon={BarChart3} variant="accent" subtitle="Active / Contacted" />
       </div>
 
-      {/* Fleet + Funnel */}
+      {/* Funnel + Fleet */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-muted-foreground" /> Sales Funnel
+              <BarChart3 className="h-5 w-5 text-muted-foreground" /> Performance Funnel
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.funnelData.map(stage => {
+              {stats.funnelData.map((stage, idx) => {
                 const maxVal = stats.funnelData[0].value || 1;
                 const pct = Math.round((stage.value / maxVal) * 100);
+                const dropOff = idx > 0 && stats.funnelData[idx - 1].value > 0
+                  ? Math.round(((stats.funnelData[idx - 1].value - stage.value) / stats.funnelData[idx - 1].value) * 100)
+                  : null;
                 return (
                   <div key={stage.name} className="flex items-center gap-3">
                     <span className="text-sm font-medium w-20 text-muted-foreground">{stage.name}</span>
-                    <div className="flex-1 h-8 bg-muted rounded-md overflow-hidden relative">
-                      <div className="h-full rounded-md transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: stage.fill }} />
-                      <span className="absolute inset-0 flex items-center pl-3 text-sm font-semibold text-primary-foreground mix-blend-difference">
-                        {stage.value} ({pct}%)
+                    <div className="flex-1 h-9 bg-muted rounded-md overflow-hidden relative">
+                      <div className="h-full rounded-md transition-all duration-700 ease-out" style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: stage.fill }} />
+                      <span className="absolute inset-0 flex items-center pl-3 text-sm font-bold text-primary-foreground mix-blend-difference">
+                        {stage.value}
                       </span>
                     </div>
+                    <span className="text-xs text-muted-foreground w-12 text-right font-mono">
+                      {pct}%
+                    </span>
+                    {dropOff !== null && dropOff > 0 && (
+                      <span className="text-xs text-destructive/70 w-12 text-right font-mono">
+                        −{dropOff}%
+                      </span>
+                    )}
                   </div>
                 );
               })}
@@ -213,7 +229,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
-              <Ship className="h-5 w-5 text-muted-foreground" /> Fleet Metrics
+              <FileText className="h-5 w-5 text-muted-foreground" /> Fleet Metrics
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -238,7 +254,7 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle className="text-lg font-display flex items-center gap-2"><Globe className="h-5 w-5 text-muted-foreground" /> By Country</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg font-display">By Country</CardTitle></CardHeader>
           <CardContent>
             {stats.countryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -276,7 +292,16 @@ export default function Dashboard() {
 
       {/* Traffic Light Table */}
       <Card>
-        <CardHeader><CardTitle className="text-lg font-display">Company Status Overview</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-lg font-display">Company Status Overview</CardTitle>
+          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-destructive inline-block" /> Not Contacted</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-warning inline-block" /> Contacted – No Response</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-success inline-block" /> Responded / Dialogue</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-info inline-block" /> Proposal</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-800 inline-block" /> Signed</span>
+          </div>
+        </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
