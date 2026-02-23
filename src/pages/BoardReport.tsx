@@ -341,24 +341,72 @@ export default function BoardReport() {
           </div>
         </Card>
 
-        {/* KPI Summary */}
+        {/* KPI Summary with Traffic Light Indicators */}
         <div className={`grid gap-4 ${isSalesPartner ? 'grid-cols-2 md:grid-cols-6' : 'grid-cols-2 md:grid-cols-5'}`}>
           {[
-            { label: 'Total Pipeline', value: stats.total, field: 'total' },
-            { label: 'Contacted', value: stats.contacted, field: 'contacted' },
-            { label: 'In Dialogue', value: stats.inDialogue, field: 'inDialogue' },
-            { label: 'Agreements', value: stats.signed, field: 'signed' },
-            { label: 'Conversion', value: `${stats.conversionRate}%`, field: 'conversionRate', rawValue: stats.conversionRate },
-            ...(isSalesPartner ? [{ label: 'Partner Conv.', value: `${stats.partnerConversionRate}%`, field: 'partnerConversionRate', rawValue: stats.partnerConversionRate }] : []),
-          ].map(kpi => (
-            <Card key={kpi.label} className="border-border">
-              <CardContent className="pt-5 pb-4 text-center">
-                <p className={`font-bold tracking-tight ${boardMode ? 'text-4xl' : 'text-3xl'}`}>{kpi.value}</p>
-                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">{kpi.label}</p>
-                <DeltaIndicator current={kpi.rawValue ?? (typeof kpi.value === 'number' ? kpi.value : 0)} field={kpi.field} />
-              </CardContent>
-            </Card>
-          ))}
+            {
+              label: 'Total Pipeline',
+              value: stats.total,
+              field: 'total',
+              health: stats.total > 0 ? 'green' as const : 'red' as const,
+            },
+            {
+              label: 'Contacted',
+              value: stats.contacted,
+              field: 'contacted',
+              health: (stats.contactRate > 50 ? 'green' : stats.contactRate >= 20 ? 'yellow' : 'red') as 'green' | 'yellow' | 'red',
+              sub: `${stats.contactRate}% rate`,
+            },
+            {
+              label: 'In Dialogue',
+              value: stats.inDialogue,
+              field: 'inDialogue',
+              health: (stats.inDialogue > 0 ? 'green' : 'yellow') as 'green' | 'yellow' | 'red',
+            },
+            {
+              label: 'Agreements',
+              value: stats.signed,
+              field: 'signed',
+              health: (stats.signed > 0 ? 'green' : 'red') as 'green' | 'yellow' | 'red',
+            },
+            {
+              label: 'Conversion',
+              value: `${stats.conversionRate}%`,
+              field: 'conversionRate',
+              rawValue: stats.conversionRate,
+              health: (stats.conversionRate > 10 ? 'green' : stats.conversionRate > 0 ? 'yellow' : 'red') as 'green' | 'yellow' | 'red',
+            },
+            ...(isSalesPartner ? [{
+              label: 'Partner Conv.',
+              value: `${stats.partnerConversionRate}%`,
+              field: 'partnerConversionRate',
+              rawValue: stats.partnerConversionRate,
+              health: (stats.partnerConversionRate > 10 ? 'green' : stats.partnerConversionRate > 0 ? 'yellow' : 'red') as 'green' | 'yellow' | 'red',
+            }] : []),
+          ].map(kpi => {
+            const healthColors = {
+              green: { strip: '#27AE60', dot: '#27AE60', bg: 'rgba(39, 174, 96, 0.06)', border: 'rgba(39, 174, 96, 0.25)' },
+              yellow: { strip: '#F39C12', dot: '#F39C12', bg: 'rgba(243, 156, 18, 0.06)', border: 'rgba(243, 156, 18, 0.25)' },
+              red: { strip: '#C0392B', dot: '#C0392B', bg: 'rgba(192, 57, 43, 0.06)', border: 'rgba(192, 57, 43, 0.25)' },
+            };
+            const c = healthColors[kpi.health];
+            return (
+              <Card key={kpi.label} className="overflow-hidden" style={{ backgroundColor: c.bg, borderColor: c.border }}>
+                {/* Colored strip */}
+                <div className="h-1.5" style={{ backgroundColor: c.strip }} />
+                <CardContent className="pt-4 pb-4 text-center relative">
+                  {/* Traffic light dot */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full shadow-sm" style={{ backgroundColor: c.dot, boxShadow: `0 0 6px ${c.dot}40` }} />
+                  </div>
+                  <p className={`font-bold tracking-tight ${boardMode ? 'text-4xl' : 'text-3xl'}`}>{kpi.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">{kpi.label}</p>
+                  {kpi.sub && <p className="text-xs mt-0.5" style={{ color: c.dot }}>{kpi.sub}</p>}
+                  <DeltaIndicator current={kpi.rawValue ?? (typeof kpi.value === 'number' ? kpi.value : 0)} field={kpi.field} />
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Partner Stage Funnel (Sales Partner only) */}
