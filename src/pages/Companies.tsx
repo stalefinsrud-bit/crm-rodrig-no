@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, Search, HelpCircle } from 'lucide-react';
 import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import CsvImportDialog from '@/components/CsvImportDialog';
 
 export default function Companies() {
   const { data: companies = [], isLoading } = useCompanies();
@@ -53,6 +54,7 @@ export default function Companies() {
     const f = new FormData(e.currentTarget);
     try {
       await createCompany.mutateAsync({
+        code: null,
         company: f.get('company') as string,
         company_type: (f.get('company_type') as string) || null,
         country: (f.get('country') as string) || null,
@@ -90,6 +92,8 @@ export default function Companies() {
           <h1 className="text-3xl font-display text-foreground">Companies</h1>
           <p className="text-muted-foreground mt-1">{companies.length} companies in pipeline</p>
         </div>
+        <div className="flex items-center gap-2">
+        <CsvImportDialog />
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setFormCompanyType(''); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" /> Add Company</Button>
@@ -161,6 +165,7 @@ export default function Companies() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

@@ -1,5 +1,6 @@
 export interface Company {
   id: string;
+  code: string | null;
   company_type: string | null;
   company: string;
   country: string | null;
