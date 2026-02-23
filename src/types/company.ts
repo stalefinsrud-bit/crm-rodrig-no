@@ -22,6 +22,7 @@ export interface Company {
   fleet_size: number | null;
   partner_stage: string | null;
   strategic_insight: string | null;
+  is_deleted: boolean;
   created_at: string;
   updated_at: string;
   created_by: string | null;
