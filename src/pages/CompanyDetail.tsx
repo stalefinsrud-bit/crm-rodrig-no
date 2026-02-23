@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCompany, useCompanyActivities, useCreateActivity } from '@/hooks/useCompanies';
+import { useCompany, useCompanyActivities, useCreateActivity, useUpdateCompany } from '@/hooks/useCompanies';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag, Lightbulb, Trash2 } from 'lucide-react';
 import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
 import type { ActivityType } from '@/types/company';
 import { format } from 'date-fns';
@@ -22,9 +23,22 @@ export default function CompanyDetail() {
   const { data: company, isLoading } = useCompany(id);
   const { data: activities = [] } = useCompanyActivities(id);
   const createActivity = useCreateActivity();
+  const updateCompany = useUpdateCompany();
   const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+
+  const handleArchive = async () => {
+    try {
+      await updateCompany.mutateAsync({ id: id!, is_deleted: true });
+      toast({ title: 'Company archived successfully.' });
+      navigate('/companies');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+  };
 
   const handleAddActivity = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,6 +85,29 @@ export default function CompanyDetail() {
         <Badge variant="outline" className={`${PRIORITY_COLORS[company.priority] || ''} text-sm border-transparent`}>
           {company.priority}
         </Badge>
+        {isAdmin && (
+          <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50">
+                <Trash2 className="h-4 w-4 mr-2" /> Archive
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-display">Archive Company</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to archive <strong>{company.company}</strong>? It will be removed from the active list but can be restored by an admin.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setArchiveDialogOpen(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleArchive} disabled={updateCompany.isPending}>
+                  {updateCompany.isPending ? 'Archiving...' : 'Confirm Archive'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Company info */}
