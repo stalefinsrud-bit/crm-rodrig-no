@@ -100,6 +100,7 @@ export type Database = {
           first_name: string | null
           fleet_size: number | null
           id: string
+          is_deleted: boolean
           last_contact_date: string | null
           last_name: string | null
           next_action: string | null
@@ -128,6 +129,7 @@ export type Database = {
           first_name?: string | null
           fleet_size?: number | null
           id?: string
+          is_deleted?: boolean
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           first_name?: string | null
           fleet_size?: number | null
           id?: string
+          is_deleted?: boolean
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null

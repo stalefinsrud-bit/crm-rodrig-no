@@ -2,14 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Company, Activity, ActivityType } from '@/types/company';
 
-export function useCompanies() {
+export function useCompanies(includeDeleted = false) {
   return useQuery({
-    queryKey: ['companies'],
+    queryKey: ['companies', { includeDeleted }],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('companies')
         .select('*')
         .order('created_at', { ascending: false });
+      if (!includeDeleted) {
+        query = query.eq('is_deleted', false);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as Company[];
     },
@@ -51,7 +55,7 @@ export function useCompanyActivities(companyId: string | undefined) {
 export function useCreateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (company: Omit<Company, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (company: Omit<Company, 'id' | 'created_at' | 'updated_at' | 'is_deleted'>) => {
       const { data, error } = await supabase
         .from('companies')
         .insert(company as any)
