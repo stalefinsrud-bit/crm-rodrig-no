@@ -10,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Search, HelpCircle } from 'lucide-react';
-import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import { Plus, Search } from 'lucide-react';
+import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
 import CsvImportDialog from '@/components/CsvImportDialog';
 
 export default function Companies() {
@@ -74,7 +73,7 @@ export default function Companies() {
         priority: (f.get('priority') as string) || 'Medium',
         status: 'New Lead',
         fleet_size: Number(f.get('fleet_size')) || null,
-        partner_stage: formCompanyType === 'Sales Partner' ? ((f.get('partner_stage') as string) || null) : null,
+        partner_stage: (f.get('partner_stage') as string) || null,
         created_by: user?.id || null,
       });
       setDialogOpen(false);
@@ -126,37 +125,18 @@ export default function Companies() {
                 <div className="space-y-2"><Label>Website</Label><Input name="website" /></div>
                 <div className="space-y-2"><Label>Source</Label><Input name="source" /></div>
                 <div className="space-y-2">
+                  <Label>Stage</Label>
+                  <select name="partner_stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">Select stage...</option>
+                    {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
                   <Label>Priority</Label>
                   <select name="priority" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                     {COMPANY_PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
-                {formCompanyType === 'Sales Partner' && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-1">
-                      <Label>Partner Stage</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
-                            <HelpCircle className="h-3.5 w-3.5" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-72 text-sm space-y-2" align="start">
-                          {PARTNER_STAGES.map(s => (
-                            <div key={s}>
-                              <span className="font-medium text-foreground">{s}</span>
-                              <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
-                            </div>
-                          ))}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <select name="partner_stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                      <option value="">Select stage...</option>
-                      {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                )}
                 <div className="col-span-2 space-y-2"><Label>Next Action</Label><Input name="next_action" /></div>
               </div>
               <Button type="submit" className="w-full" disabled={createCompany.isPending}>
