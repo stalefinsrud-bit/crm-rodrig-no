@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompanies, useCreateCompany, useUpdateCompany } from '@/hooks/useCompanies';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsOwner } from '@/hooks/useIsAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ export default function Companies() {
   const createCompany = useCreateCompany();
   const updateCompany = useUpdateCompany();
   const { user } = useAuth();
-  const { data: isAdmin } = useIsAdmin();
+  const { data: isOwner } = useIsOwner();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -61,8 +61,6 @@ export default function Companies() {
 
   const filtered = useMemo(() => {
     return companies.filter(c => {
-      // When not showing deleted, filter is already done by the query
-      // When showing deleted, show all
       const q = search.toLowerCase();
       const matchSearch = !search ||
         c.company.toLowerCase().includes(q) ||
@@ -104,10 +102,9 @@ export default function Companies() {
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Block if duplicate detected and not overridden
     if (duplicateWarning && !duplicateOverride) {
-      if (!isAdmin) {
-        toast({ title: 'Duplicate detected', description: 'Only admins can override duplicate protection.', variant: 'destructive' });
+      if (!isOwner) {
+        toast({ title: 'Duplicate detected', description: 'Only owners can override duplicate protection.', variant: 'destructive' });
         return;
       }
       toast({ title: 'Duplicate detected', description: 'Toggle the override switch to confirm.', variant: 'destructive' });
@@ -192,15 +189,10 @@ export default function Companies() {
                     <Input name="country" value={formCountry} onChange={e => setFormCountry(e.target.value)} />
                   </div>
                   <div className="space-y-2"><Label>Region</Label><Input name="region" /></div>
-                  <div className="space-y-2"><Label>First Name</Label><Input name="first_name" /></div>
-                  <div className="space-y-2"><Label>Last Name</Label><Input name="last_name" /></div>
-                  <div className="space-y-2"><Label>Email</Label><Input name="email" type="email" /></div>
-                  <div className="space-y-2"><Label>Phone</Label><Input name="phone" /></div>
                   <div className="space-y-2"><Label>Vessel Type</Label><Input name="vessel_type" /></div>
                   <div className="space-y-2"><Label>Vessel Segment</Label><Input name="vessel_segment" /></div>
                   <div className="space-y-2"><Label>Fleet Size</Label><Input name="fleet_size" type="number" /></div>
                   <div className="space-y-2"><Label>Size</Label><Input name="size" /></div>
-                  <div className="space-y-2"><Label>Role</Label><Input name="role" /></div>
                   <div className="space-y-2"><Label>Website</Label><Input name="website" /></div>
                   <div className="space-y-2"><Label>Source</Label><Input name="source" /></div>
                   <div className="space-y-2">
@@ -220,7 +212,6 @@ export default function Companies() {
                   <div className="col-span-2 space-y-2"><Label>Strategic Insight</Label><Textarea name="strategic_insight" rows={3} placeholder="Optional strategic notes..." /></div>
                 </div>
 
-                {/* Duplicate warning */}
                 {duplicateWarning && (
                   <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 space-y-2">
                     <div className="flex items-center gap-2 text-warning text-sm font-medium">
@@ -228,26 +219,18 @@ export default function Companies() {
                       Duplicate Detected
                     </div>
                     <p className="text-xs text-muted-foreground">{duplicateWarning}</p>
-                    {isAdmin && (
+                    {isOwner && (
                       <div className="flex items-center gap-2">
-                        <Switch
-                          checked={duplicateOverride}
-                          onCheckedChange={setDuplicateOverride}
-                          id="override"
-                        />
+                        <Switch checked={duplicateOverride} onCheckedChange={setDuplicateOverride} id="override" />
                         <Label htmlFor="override" className="text-xs text-muted-foreground cursor-pointer">
-                          Admin override — create anyway
+                          Owner override — create anyway
                         </Label>
                       </div>
                     )}
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={createCompany.isPending || (!!duplicateWarning && !duplicateOverride)}
-                >
+                <Button type="submit" className="w-full" disabled={createCompany.isPending || (!!duplicateWarning && !duplicateOverride)}>
                   {createCompany.isPending ? 'Adding...' : 'Add Company'}
                 </Button>
               </form>
@@ -268,7 +251,7 @@ export default function Companies() {
             {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
-        {isAdmin && (
+        {isOwner && (
           <div className="flex items-center gap-2 ml-auto">
             <Switch checked={showDeleted} onCheckedChange={setShowDeleted} id="show-deleted" />
             <Label htmlFor="show-deleted" className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1">
@@ -285,7 +268,6 @@ export default function Companies() {
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Company</TableHead>
                 <TableHead className="font-semibold">Type</TableHead>
-                <TableHead className="font-semibold">Contact</TableHead>
                 <TableHead className="font-semibold">Country</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
                 <TableHead className="font-semibold">Priority</TableHead>
@@ -296,9 +278,9 @@ export default function Companies() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-12 text-muted-foreground">No companies found.</TableCell></TableRow>
               ) : (
                 filtered.map(c => (
                   <TableRow
@@ -311,10 +293,6 @@ export default function Companies() {
                       {c.is_deleted && <Badge variant="outline" className="ml-2 text-xs bg-muted text-muted-foreground">Archived</Badge>}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(' ') || '—'}</div>
-                      {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
-                    </TableCell>
                     <TableCell className="text-sm">{c.country || '—'}</TableCell>
                     <TableCell>
                       {c.is_deleted ? (
@@ -342,7 +320,7 @@ export default function Companies() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                         )}
-                        {isAdmin && (
+                        {isOwner && (
                           c.is_deleted ? (
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => { e.stopPropagation(); handleRestore(c.id); }} title="Restore">
                               <RotateCcw className="h-4 w-4" />

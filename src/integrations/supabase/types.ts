@@ -178,6 +178,53 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          is_primary: boolean
+          last_name: string | null
+          phone: string | null
+          role: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          is_primary?: boolean
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          is_primary?: boolean
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -310,7 +357,7 @@ export type Database = {
         | "linkedin"
         | "presentation"
         | "internal"
-      app_role: "admin" | "user"
+      app_role: "owner" | "editor"
       prospect_list:
         | "December 2025 – Dealers/Partners"
         | "Master Ship Operator – End Users"
@@ -459,7 +506,7 @@ export const Constants = {
         "presentation",
         "internal",
       ],
-      app_role: ["admin", "user"],
+      app_role: ["owner", "editor"],
       prospect_list: [
         "December 2025 – Dealers/Partners",
         "Master Ship Operator – End Users",
