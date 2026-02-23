@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { COMPANY_TYPES } from '@/types/company';
+import { COMPANY_TYPES, PARTNER_STAGES } from '@/types/company';
 import type { Company } from '@/types/company';
 
 const CHART_COLORS = [
@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all');
   const [companyTypeFilter, setCompanyTypeFilter] = useState<string>('all');
+  const [stageFilter, setStageFilter] = useState<string>('all');
 
   const regions = useMemo(() => [...new Set(companies.map(c => c.region).filter(Boolean))].sort(), [companies]);
   const segments = useMemo(() => [...new Set(companies.map(c => c.vessel_segment).filter(Boolean))].sort(), [companies]);
@@ -60,10 +61,11 @@ export default function Dashboard() {
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
       if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
+      if (stageFilter !== 'all' && c.partner_stage !== stageFilter) return false;
       if (companyIdsWithActivityType && !companyIdsWithActivityType.has(c.id)) return false;
       return true;
     });
-  }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyTypeFilter, companyIdsWithActivityType]);
+  }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyTypeFilter, stageFilter, companyIdsWithActivityType]);
 
   const meetingCount = useMemo(() =>
     allActivities.filter(a => a.activity_type === 'meeting').length
@@ -157,6 +159,13 @@ export default function Dashboard() {
             <SelectContent>
               <SelectItem value="all">All Activities</SelectItem>
               {['email', 'phone', 'meeting', 'linkedin', 'presentation', 'internal'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={stageFilter} onValueChange={setStageFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Stage" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stages</SelectItem>
+              {PARTNER_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
