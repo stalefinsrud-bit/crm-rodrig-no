@@ -14,17 +14,33 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { COMPANY_TYPES, COMPANY_STATUSES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
 import { toast } from 'sonner';
 
-const MUTED_COLORS = [
-  'hsl(215, 25%, 27%)', 'hsl(215, 20%, 40%)', 'hsl(215, 15%, 53%)',
-  'hsl(215, 12%, 65%)', 'hsl(200, 15%, 45%)', 'hsl(180, 10%, 50%)',
-  'hsl(160, 12%, 42%)', 'hsl(140, 10%, 48%)',
+// Executive palette – strong, high-contrast colors
+const EXEC_COLORS = [
+  '#1B2A4A', '#D4820A', '#27AE60', '#2980B9',
+  '#C0392B', '#16A085', '#8E44AD', '#E67E22',
 ];
 
+const STATUS_CHART_COLORS: Record<string, string> = {
+  'New Lead': '#C0392B',
+  'Contacted': '#F39C12',
+  'Meeting Scheduled': '#27AE60',
+  'Proposal Sent': '#2980B9',
+  'Negotiation': '#8E44AD',
+  'Agreement Signed': '#1B6B3A',
+  'Lost': '#7F8C8D',
+  'On Hold': '#95A5A6',
+};
+
 const PARTNER_FUNNEL_COLORS = [
-  'hsl(215, 25%, 20%)', 'hsl(215, 20%, 30%)', 'hsl(200, 18%, 38%)',
-  'hsl(200, 15%, 46%)', 'hsl(180, 12%, 42%)', 'hsl(160, 15%, 38%)',
-  'hsl(0, 15%, 50%)', 'hsl(215, 10%, 60%)',
+  '#1B2A4A', '#1F3A5F', '#2980B9', '#D4820A',
+  '#F39C12', '#27AE60', '#C0392B', '#95A5A6',
 ];
+
+const VESSEL_TYPE_COLORS = ['#1B2A4A', '#2C3E6B', '#3B5998', '#4A7EC0', '#6FA8DC', '#1F3A5F', '#34495E', '#5B7DA8'];
+const VESSEL_SEGMENT_COLORS = ['#1B2A4A', '#D4820A', '#16A085', '#27AE60', '#2980B9', '#8E44AD', '#C0392B', '#F39C12'];
+
+const TOOLTIP_STYLE = { backgroundColor: '#0D1B2A', border: '1px solid rgba(212, 130, 10, 0.3)', borderRadius: '8px', color: '#E8DCC8', fontSize: '12px', fontWeight: 500 };
+const AXIS_TICK = { fontSize: 12, fill: '#8B9DC3', fontWeight: 500 };
 
 export default function BoardReport() {
   const { data: companies = [] } = useCompanies();
@@ -319,22 +335,22 @@ export default function BoardReport() {
       {/* Report Content */}
       <div className="space-y-6" id="board-report" ref={reportRef}>
         {/* Report Header */}
-        <Card className="overflow-hidden border-border">
-          <div className="bg-foreground px-8 py-6">
+        <Card className="overflow-hidden border-0 shadow-lg">
+          <div className="px-8 py-7" style={{ background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2A4A 60%, #2C3E6B 100%)' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded bg-background/10">
-                  <Anchor className="h-5 w-5 text-background" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg" style={{ backgroundColor: 'rgba(212, 130, 10, 0.2)', border: '1px solid rgba(212, 130, 10, 0.3)' }}>
+                  <Anchor className="h-5 w-5" style={{ color: '#D4820A' }} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-display text-background tracking-tight">AWT Pipeline Report</h2>
-                  <p className="text-background/50 text-sm">{format(new Date(), 'MMMM d, yyyy')}</p>
+                  <h2 className="text-xl font-display tracking-tight" style={{ color: '#E8DCC8' }}>AWT Pipeline Report</h2>
+                  <p className="text-sm" style={{ color: 'rgba(232, 220, 200, 0.5)' }}>{format(new Date(), 'MMMM d, yyyy')}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs text-background/40 uppercase tracking-widest">Confidential</p>
+                <p className="text-xs uppercase tracking-widest" style={{ color: 'rgba(232, 220, 200, 0.3)' }}>Confidential</p>
                 {activeFilters.length > 0 && (
-                  <p className="text-xs text-background/50 mt-1">{activeFilters.join(' · ')}</p>
+                  <p className="text-xs mt-1" style={{ color: 'rgba(232, 220, 200, 0.45)' }}>{activeFilters.join(' · ')}</p>
                 )}
               </div>
             </div>
@@ -466,15 +482,21 @@ export default function BoardReport() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Regional Distribution */}
           <Card className="border-border">
-            <CardHeader><CardTitle className="text-base font-display">Regional Distribution</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base font-display font-bold">Regional Distribution</CardTitle></CardHeader>
             <CardContent>
               {stats.regionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={stats.regionData} layout="vertical" margin={{ left: 70 }}>
-                    <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                    <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
-                    <Bar dataKey="value" fill="hsl(215, 25%, 27%)" radius={[0, 3, 3, 0]} />
+                    <defs>
+                      <linearGradient id="regionGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#1B2A4A" />
+                        <stop offset="100%" stopColor="#2980B9" />
+                      </linearGradient>
+                    </defs>
+                    <XAxis type="number" tick={AXIS_TICK} axisLine={{ stroke: '#2C3E6B' }} tickLine={false} />
+                    <YAxis type="category" dataKey="name" width={70} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Bar dataKey="value" fill="url(#regionGrad)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
@@ -484,7 +506,7 @@ export default function BoardReport() {
           {/* Status Distribution */}
           {!boardMode && (
             <Card className="border-border">
-              <CardHeader><CardTitle className="text-base font-display">Status Distribution</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base font-display font-bold">Status Distribution</CardTitle></CardHeader>
               <CardContent>
                 {Object.keys(stats.byStatus).length > 0 ? (
                   <ResponsiveContainer width="100%" height={280}>
@@ -493,12 +515,16 @@ export default function BoardReport() {
                         data={Object.entries(stats.byStatus).map(([name, value]) => ({ name, value }))}
                         dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={95}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={{ stroke: 'hsl(215, 15%, 55%)' }}
-                        style={{ fontSize: '11px' }}
+                        labelLine={{ stroke: '#8B9DC3' }}
+                        style={{ fontSize: '12px', fontWeight: 500 }}
+                        strokeWidth={2}
+                        stroke="#fff"
                       >
-                        {Object.keys(stats.byStatus).map((_, i) => <Cell key={i} fill={MUTED_COLORS[i % MUTED_COLORS.length]} />)}
+                        {Object.entries(stats.byStatus).map(([status], i) => (
+                          <Cell key={i} fill={STATUS_CHART_COLORS[status] || EXEC_COLORS[i % EXEC_COLORS.length]} />
+                        ))}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
@@ -506,18 +532,24 @@ export default function BoardReport() {
             </Card>
           )}
 
-          {/* Geographic Distribution (board mode shows this instead of status) */}
+          {/* Geographic Distribution (board mode) */}
           {boardMode && (
             <Card className="border-border">
-              <CardHeader><CardTitle className="text-base font-display">Geographic Distribution</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base font-display font-bold">Geographic Distribution</CardTitle></CardHeader>
               <CardContent>
                 {stats.countryData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={stats.countryData} layout="vertical" margin={{ left: 70 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
-                      <Bar dataKey="value" fill="hsl(200, 18%, 38%)" radius={[0, 3, 3, 0]} />
+                      <defs>
+                        <linearGradient id="geoGrad" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#1B2A4A" />
+                          <stop offset="100%" stopColor="#D4820A" />
+                        </linearGradient>
+                      </defs>
+                      <XAxis type="number" tick={AXIS_TICK} axisLine={{ stroke: '#2C3E6B' }} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={70} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Bar dataKey="value" fill="url(#geoGrad)" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
@@ -531,14 +563,16 @@ export default function BoardReport() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {stats.vesselTypeData.length > 0 && (
               <Card className="border-border">
-                <CardHeader><CardTitle className="text-base font-display">Vessel Type Breakdown</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base font-display font-bold">Vessel Type Breakdown</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={stats.vesselTypeData} layout="vertical" margin={{ left: 80 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
-                      <Bar dataKey="value" fill="hsl(200, 18%, 38%)" radius={[0, 3, 3, 0]} />
+                      <XAxis type="number" tick={AXIS_TICK} axisLine={{ stroke: '#2C3E6B' }} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={80} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                        {stats.vesselTypeData.map((_, i) => <Cell key={i} fill={VESSEL_TYPE_COLORS[i % VESSEL_TYPE_COLORS.length]} />)}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -546,14 +580,16 @@ export default function BoardReport() {
             )}
             {stats.vesselSegmentData.length > 0 && (
               <Card className="border-border">
-                <CardHeader><CardTitle className="text-base font-display">Vessel Segment Breakdown</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base font-display font-bold">Vessel Segment Breakdown</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={stats.vesselSegmentData} layout="vertical" margin={{ left: 80 }}>
-                      <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11, fill: 'hsl(215, 15%, 55%)' }} />
-                      <Tooltip contentStyle={{ backgroundColor: 'hsl(215, 25%, 12%)', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }} />
-                      <Bar dataKey="value" fill="hsl(180, 12%, 42%)" radius={[0, 3, 3, 0]} />
+                      <XAxis type="number" tick={AXIS_TICK} axisLine={{ stroke: '#2C3E6B' }} tickLine={false} />
+                      <YAxis type="category" dataKey="name" width={80} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                      <Tooltip contentStyle={TOOLTIP_STYLE} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                        {stats.vesselSegmentData.map((_, i) => <Cell key={i} fill={VESSEL_SEGMENT_COLORS[i % VESSEL_SEGMENT_COLORS.length]} />)}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -563,21 +599,22 @@ export default function BoardReport() {
         )}
 
         {showFleetCharts && stats.fleetTotal > 0 && (
-          <Card className="border-border">
-            <CardHeader><CardTitle className="text-base font-display">Fleet Overview</CardTitle></CardHeader>
+          <Card className="border-border overflow-hidden">
+            <div className="h-1" style={{ background: 'linear-gradient(90deg, #1B2A4A, #D4820A, #27AE60)' }} />
+            <CardHeader><CardTitle className="text-base font-display font-bold">Fleet Overview</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
-                <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetTotal.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Total Vessels</p>
+                <div className="rounded-lg p-5 text-center" style={{ backgroundColor: 'rgba(27, 42, 74, 0.08)', border: '1px solid rgba(27, 42, 74, 0.15)' }}>
+                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#1B2A4A' }}>{stats.fleetTotal.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Total Vessels</p>
                 </div>
-                <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetSigned.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Vessels Signed</p>
+                <div className="rounded-lg p-5 text-center" style={{ backgroundColor: 'rgba(39, 174, 96, 0.06)', border: '1px solid rgba(39, 174, 96, 0.2)' }}>
+                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#27AE60' }}>{stats.fleetSigned.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Vessels Signed</p>
                 </div>
-                <div className="rounded border border-border p-4 text-center">
-                  <p className={`font-bold ${boardMode ? 'text-3xl' : 'text-2xl'}`}>{stats.fleetTotal ? Math.round((stats.fleetSigned / stats.fleetTotal) * 100) : 0}%</p>
-                  <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Penetration</p>
+                <div className="rounded-lg p-5 text-center" style={{ backgroundColor: 'rgba(212, 130, 10, 0.06)', border: '1px solid rgba(212, 130, 10, 0.2)' }}>
+                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#D4820A' }}>{stats.fleetTotal ? Math.round((stats.fleetSigned / stats.fleetTotal) * 100) : 0}%</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Penetration</p>
                 </div>
               </div>
             </CardContent>
@@ -586,18 +623,18 @@ export default function BoardReport() {
 
         {/* Top 10 Priority Accounts */}
         <Card className="border-border">
-          <CardHeader><CardTitle className="text-base font-display">Top 10 Priority Accounts</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base font-display font-bold">Top 10 Priority Accounts</CardTitle></CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-border">
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Company</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Country</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Priority</TableHead>
-                    {isSalesPartner && <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Partner Stage</TableHead>}
+                  <TableRow style={{ borderColor: 'rgba(27, 42, 74, 0.15)' }}>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Company</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Type</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Country</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Status</TableHead>
+                    <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Priority</TableHead>
+                    {isSalesPartner && <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Partner Stage</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -605,13 +642,20 @@ export default function BoardReport() {
                     <TableRow><TableCell colSpan={isSalesPartner ? 6 : 5} className="text-center py-8 text-muted-foreground text-sm">No companies match filters</TableCell></TableRow>
                   ) : (
                     top10.map(c => (
-                      <TableRow key={c.id} className="border-border hover:bg-muted/20 transition-colors">
-                        <TableCell className="font-medium text-sm">{c.company}</TableCell>
+                      <TableRow key={c.id} className="hover:bg-muted/20 transition-colors" style={{ borderColor: 'rgba(27, 42, 74, 0.08)' }}>
+                        <TableCell className="font-semibold text-sm">{c.company}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{c.country || '—'}</TableCell>
-                        <TableCell className="text-sm">{c.status}</TableCell>
                         <TableCell className="text-sm">
-                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${c.priority === 'High' ? 'bg-destructive/10 text-destructive' : c.priority === 'Medium' ? 'bg-muted text-muted-foreground' : 'bg-muted text-muted-foreground'}`}>
+                          <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: `${STATUS_CHART_COLORS[c.status] || '#95A5A6'}18`, color: STATUS_CHART_COLORS[c.status] || '#95A5A6' }}>
+                            {c.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold" style={{
+                            backgroundColor: c.priority === 'High' ? '#C0392B18' : c.priority === 'Medium' ? '#F39C1218' : '#27AE6018',
+                            color: c.priority === 'High' ? '#C0392B' : c.priority === 'Medium' ? '#D4820A' : '#27AE60',
+                          }}>
                             {c.priority}
                           </span>
                         </TableCell>
