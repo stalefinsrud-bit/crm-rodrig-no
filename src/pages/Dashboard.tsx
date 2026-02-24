@@ -57,7 +57,7 @@ export default function Dashboard() {
   const segments = useMemo(() => [...new Set(companies.map(c => c.vessel_segment).filter(Boolean))].sort(), [companies]);
   const companyTypes = useMemo(() => [...new Set(companies.map(c => c.company_type).filter(Boolean))].sort(), [companies]);
   const statuses = useMemo(() => [...new Set(companies.map(c => c.status).filter(Boolean))].sort(), [companies]);
-  const stages = useMemo(() => [...new Set(companies.map(c => (c.partner_stage || c.stage)).filter(Boolean))].sort(), [companies]);
+  const stages = useMemo(() => [...new Set(companies.map(c => c.stage).filter(Boolean))].sort(), [companies]);
 
   const companyIdsWithActivityType = useMemo(() => {
     if (activityTypeFilter === 'all') return null;
@@ -71,7 +71,7 @@ export default function Dashboard() {
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
       if (companyTypeFilter !== 'all' && c.company_type?.toLowerCase() !== companyTypeFilter.toLowerCase()) return false;
-      if (stageFilter !== 'all' && (c.partner_stage || c.stage)?.toLowerCase() !== stageFilter.toLowerCase()) return false;
+      if (stageFilter !== 'all' && c.stage?.toLowerCase() !== stageFilter.toLowerCase()) return false;
       if (companyIdsWithActivityType && !companyIdsWithActivityType.has(c.id)) return false;
       return true;
     });

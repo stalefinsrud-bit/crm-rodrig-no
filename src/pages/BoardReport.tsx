@@ -71,7 +71,7 @@ export default function BoardReport() {
       if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
       if (regionFilter !== 'all' && c.region !== regionFilter) return false;
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
-      if (partnerStageFilter !== 'all' && c.partner_stage !== partnerStageFilter) return false;
+      if (partnerStageFilter !== 'all' && c.stage !== partnerStageFilter) return false;
       if (fleetFilter !== 'all') {
         const fs = c.fleet_size || 0;
         if (fleetFilter === 'small' && fs > 10) return false;
@@ -114,7 +114,7 @@ export default function BoardReport() {
     const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
 
     const byPartnerStage: Record<string, number> = {};
-    filtered.forEach(c => { if (c.partner_stage) byPartnerStage[c.partner_stage] = (byPartnerStage[c.partner_stage] || 0) + 1; });
+    filtered.forEach(c => { if (c.stage) byPartnerStage[c.stage] = (byPartnerStage[c.stage] || 0) + 1; });
 
     // Partner Conversion Rate: Active / (Presented + In Dialogue + Proposal Sent + Negotiation)
     const activeCount = byPartnerStage['Active'] || 0;
@@ -659,7 +659,7 @@ export default function BoardReport() {
                             {c.priority}
                           </span>
                         </TableCell>
-                        {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
+                        {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.stage || '—'}</TableCell>}
                       </TableRow>
                     ))
                   )}
@@ -698,7 +698,7 @@ export default function BoardReport() {
                           <TableCell className="text-sm text-muted-foreground">{c.country || '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{c.region || '—'}</TableCell>
                           <TableCell className="text-sm">{c.status}</TableCell>
-                          {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
+                          {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.stage || '—'}</TableCell>}
                           <TableCell className="text-right font-mono text-sm text-muted-foreground">{c.fleet_size ?? '—'}</TableCell>
                         </TableRow>
                       ))
