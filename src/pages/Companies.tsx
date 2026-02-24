@@ -135,7 +135,7 @@ export default function Companies() {
         priority: (f.get('priority') as string) || 'Medium',
         status: 'New Lead',
         fleet_size: Number(f.get('fleet_size')) || null,
-        partner_stage: (f.get('partner_stage') as string) || null,
+        stage: (f.get('stage') as string) || null,
         created_by: user?.id || null,
       });
       setDialogOpen(false);
@@ -197,7 +197,7 @@ export default function Companies() {
                   <div className="space-y-2"><Label>Source</Label><Input name="source" /></div>
                   <div className="space-y-2">
                     <Label>Stage</Label>
-                    <select name="partner_stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <select name="stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                       <option value="">Select stage...</option>
                       {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>

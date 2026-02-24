@@ -11,7 +11,7 @@ export function DataHealthBanner({ companies }: Props) {
 
   const issues = useMemo(() => {
     const warnings: string[] = [];
-    const missingStage = companies.filter(c => !c.partner_stage).length;
+    const missingStage = companies.filter(c => !c.stage).length;
     const missingFleet = companies.filter(c => c.fleet_size == null).length;
     const missingType = companies.filter(c => !c.company_type).length;
 

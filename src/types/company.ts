@@ -20,8 +20,7 @@ export interface Company {
   priority: string;
   status: string;
   fleet_size: number | null;
-  partner_stage?: string | null;
-  stage?: string | null;
+  stage: string | null;
   strategic_insight: string | null;
   is_deleted: boolean;
   created_at: string;
@@ -50,7 +49,7 @@ export const COMPANY_TYPES = [
   'Supplier',
 ] as const;
 
-export const PARTNER_STAGES = [
+export const STAGES = [
   'Identified',
   'Presented',
   'In Dialogue',
@@ -61,7 +60,7 @@ export const PARTNER_STAGES = [
   'No Reply',
 ] as const;
 
-export const PARTNER_STAGE_DESCRIPTIONS: Record<string, string> = {
+export const STAGE_DESCRIPTIONS: Record<string, string> = {
   'Identified': 'Company mapped, no contact yet',
   'Presented': 'Intro or presentation shared',
   'In Dialogue': 'Active discussion or meeting',
@@ -71,6 +70,10 @@ export const PARTNER_STAGE_DESCRIPTIONS: Record<string, string> = {
   'Rejected': 'Declined cooperation',
   'No Reply': 'Multiple attempts, no response',
 };
+
+// Backward-compatible aliases
+export const PARTNER_STAGES = STAGES;
+export const PARTNER_STAGE_DESCRIPTIONS = STAGE_DESCRIPTIONS;
 
 export const COMPANY_STATUSES = ['New Lead', 'Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed', 'Lost', 'On Hold'] as const;
 export const COMPANY_PRIORITIES = ['High', 'Medium', 'Low'] as const;

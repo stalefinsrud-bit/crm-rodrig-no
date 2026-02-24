@@ -60,7 +60,7 @@ export default function CompanyDetail() {
       source: company.source || '',
       status: company.status,
       priority: company.priority,
-      partner_stage: company.partner_stage || '',
+      stage: company.stage || '',
       next_action: company.next_action || '',
       strategic_insight: company.strategic_insight || '',
     });
@@ -83,7 +83,7 @@ export default function CompanyDetail() {
         source: editData.source || null,
         status: editData.status,
         priority: editData.priority,
-        partner_stage: editData.partner_stage || null,
+        stage: editData.stage || null,
         next_action: editData.next_action || null,
         strategic_insight: editData.strategic_insight || null,
       });
@@ -303,8 +303,8 @@ export default function CompanyDetail() {
                   <Input value={editData.source} onChange={e => setEditData(d => ({ ...d, source: e.target.value }))} />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Partner Stage</Label>
-                  <select value={editData.partner_stage} onChange={e => setEditData(d => ({ ...d, partner_stage: e.target.value }))} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <Label className="text-xs">Stage</Label>
+                  <select value={editData.stage} onChange={e => setEditData(d => ({ ...d, stage: e.target.value }))} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                     <option value="">Select stage...</option>
                     {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -327,10 +327,10 @@ export default function CompanyDetail() {
                 {company.fleet_size != null && <InfoRow icon={Ship} label="Fleet Size" value={String(company.fleet_size)} />}
                 {company.size && <InfoRow icon={Building2} label="Size" value={company.size} />}
                 {company.source && <InfoRow icon={Building2} label="Source" value={company.source} />}
-                {isSalesPartner && company.partner_stage && (
+                {isSalesPartner && company.stage && (
                   <div className="pt-2 border-t">
                     <div className="flex items-center gap-1 mb-1">
-                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Partner Stage</p>
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Stage</p>
                       <Popover>
                         <PopoverTrigger asChild>
                           <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -347,7 +347,7 @@ export default function CompanyDetail() {
                         </PopoverContent>
                       </Popover>
                     </div>
-                    <p className="text-foreground font-medium">{company.partner_stage}</p>
+                    <p className="text-foreground font-medium">{company.stage}</p>
                   </div>
                 )}
                 {company.next_action && (
