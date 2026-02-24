@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Download, Anchor, Filter, HelpCircle, Camera, TrendingUp, TrendingDown, Monitor } from 'lucide-react';
 import { format } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { COMPANY_TYPES, COMPANY_STATUSES, STAGES, STAGE_DESCRIPTIONS } from '@/types/company';
 import { toast } from 'sonner';
 
@@ -509,31 +509,60 @@ export default function BoardReport() {
             </CardContent>
           </Card>
 
-          {/* Status Distribution */}
+          {/* Stage Distribution – Horizontal Stacked Bar */}
           {!boardMode && (
             <Card className="border-border">
-              <CardHeader><CardTitle className="text-base font-display font-bold">Status Distribution</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base font-display font-bold">Stage Distribution</CardTitle></CardHeader>
               <CardContent>
-                {Object.keys(stats.byStatus).length > 0 ? (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(stats.byStatus).map(([name, value]) => ({ name, value }))}
-                        dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={95}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        labelLine={{ stroke: '#8B9DC3' }}
-                        style={{ fontSize: '12px', fontWeight: 500 }}
-                        strokeWidth={2}
-                        stroke="#fff"
-                      >
-                        {Object.entries(stats.byStatus).map(([status], i) => (
-                          <Cell key={i} fill={STATUS_CHART_COLORS[status] || STAGE_CHART_COLORS[status] || EXEC_COLORS[i % EXEC_COLORS.length]} />
+                {(() => {
+                  const PIPELINE_STAGES = ['New', 'Identified', 'Contacted', 'In Dialogue', 'Presented'] as const;
+                  const STAGE_BAR_COLORS: Record<string, string> = {
+                    'New': '#95A5A6',
+                    'Identified': '#5B7DA8',
+                    'Contacted': '#2980B9',
+                    'In Dialogue': '#D4820A',
+                    'Presented': '#1B2A4A',
+                  };
+                  const total = PIPELINE_STAGES.reduce((sum, s) => sum + (stats.byPartnerStage[s] || 0), 0);
+                  if (total === 0) return <div className="flex h-[120px] items-center justify-center text-muted-foreground text-sm">No data</div>;
+                  const segments = PIPELINE_STAGES.map(s => ({
+                    stage: s,
+                    count: stats.byPartnerStage[s] || 0,
+                    pct: Math.round(((stats.byPartnerStage[s] || 0) / total) * 100),
+                    color: STAGE_BAR_COLORS[s],
+                  })).filter(s => s.count > 0);
+                  return (
+                    <div className="space-y-4">
+                      {/* Stacked bar */}
+                      <div className="flex h-10 rounded-md overflow-hidden">
+                        {segments.map((seg) => (
+                          <div
+                            key={seg.stage}
+                            className="flex items-center justify-center transition-all duration-500 relative"
+                            style={{ width: `${Math.max(seg.pct, 2)}%`, backgroundColor: seg.color }}
+                            title={`${seg.stage}: ${seg.count} (${seg.pct}%)`}
+                          >
+                            {seg.pct > 5 && (
+                              <span className="text-[11px] font-semibold text-white truncate px-1">
+                                {seg.pct}%
+                              </span>
+                            )}
+                          </div>
                         ))}
-                      </Pie>
-                      <Tooltip contentStyle={TOOLTIP_STYLE} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : <div className="flex h-[280px] items-center justify-center text-muted-foreground text-sm">No data</div>}
+                      </div>
+                      {/* Legend */}
+                      <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                        {segments.map((seg) => (
+                          <div key={seg.stage} className="flex items-center gap-1.5">
+                            <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: seg.color }} />
+                            <span className="text-xs text-muted-foreground">{seg.stage}</span>
+                            <span className="text-xs font-medium">{seg.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           )}
