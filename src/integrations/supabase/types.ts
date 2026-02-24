@@ -104,13 +104,13 @@ export type Database = {
           last_contact_date: string | null
           last_name: string | null
           next_action: string | null
-          partner_stage: string | null
           phone: string | null
           priority: string
           region: string | null
           role: string | null
           size: string | null
           source: string | null
+          stage: string | null
           status: string
           strategic_insight: string | null
           updated_at: string
@@ -133,13 +133,13 @@ export type Database = {
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null
-          partner_stage?: string | null
           phone?: string | null
           priority?: string
           region?: string | null
           role?: string | null
           size?: string | null
           source?: string | null
+          stage?: string | null
           status?: string
           strategic_insight?: string | null
           updated_at?: string
@@ -162,13 +162,13 @@ export type Database = {
           last_contact_date?: string | null
           last_name?: string | null
           next_action?: string | null
-          partner_stage?: string | null
           phone?: string | null
           priority?: string
           region?: string | null
           role?: string | null
           size?: string | null
           source?: string | null
+          stage?: string | null
           status?: string
           strategic_insight?: string | null
           updated_at?: string
