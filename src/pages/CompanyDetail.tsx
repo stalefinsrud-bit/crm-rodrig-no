@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Plus, Globe, Mail, Phone, User, Ship, Calendar, Building2, HelpCircle, Tag, Lightbulb, Trash2, Pencil, X, Save, Star } from 'lucide-react';
-import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS, COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES } from '@/types/company';
+import { ACTIVITY_TYPES, ACTIVITY_TYPE_LABELS, STATUS_COLORS, PRIORITY_COLORS, STAGES, STAGE_DESCRIPTIONS, COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES } from '@/types/company';
 import type { ActivityType } from '@/types/company';
 import type { Contact } from '@/hooks/useContacts';
 import { format } from 'date-fns';
@@ -164,7 +164,7 @@ export default function CompanyDetail() {
     );
   }
 
-  const isSalesPartner = company.company_type === 'Sales Partner';
+  const showStage = true; // Stage is now shown for all company types
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -306,7 +306,7 @@ export default function CompanyDetail() {
                   <Label className="text-xs">Stage</Label>
                   <select value={editData.stage} onChange={e => setEditData(d => ({ ...d, stage: e.target.value }))} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                     <option value="">Select stage...</option>
-                    {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                    {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -327,7 +327,7 @@ export default function CompanyDetail() {
                 {company.fleet_size != null && <InfoRow icon={Ship} label="Fleet Size" value={String(company.fleet_size)} />}
                 {company.size && <InfoRow icon={Building2} label="Size" value={company.size} />}
                 {company.source && <InfoRow icon={Building2} label="Source" value={company.source} />}
-                {isSalesPartner && company.stage && (
+                {company.stage && (
                   <div className="pt-2 border-t">
                     <div className="flex items-center gap-1 mb-1">
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Stage</p>
@@ -338,10 +338,10 @@ export default function CompanyDetail() {
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-72 text-sm space-y-2" align="start">
-                          {PARTNER_STAGES.map(s => (
+                          {STAGES.map(s => (
                             <div key={s}>
                               <span className="font-medium text-foreground">{s}</span>
-                              <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                              <span className="text-muted-foreground"> – {STAGE_DESCRIPTIONS[s]}</span>
                             </div>
                           ))}
                         </PopoverContent>

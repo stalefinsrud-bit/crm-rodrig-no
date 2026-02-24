@@ -6,27 +6,27 @@ const STEPS = [
   {
     icon: Filter,
     title: 'Filters',
-    description: 'Use filters to narrow results by company type, vessel segment, region, status and stage.',
+    description: 'Use filters to narrow results by company type, vessel segment, region, stage, status and priority.',
   },
   {
     icon: GitBranch,
-    title: 'Status vs Stage',
-    description: 'Status shows contact progress (New, Contacted, Responded, Dialogue, Signed). Stage shows partnership maturity (Identified, Presented, In Dialogue, Proposal, Negotiation, Active).',
+    title: 'Stage vs Status',
+    description: 'Stage tracks pipeline progression (New → Identified → Contacted → In Dialogue → Presented → Proposal → Won). Status is the operational state (Active, On Hold, Dormant, Not Relevant). These are independent dimensions.',
   },
   {
     icon: BarChart3,
-    title: 'Performance Funnel',
-    description: 'Visual pipeline movement from Identified to Signed. Track drop-off rates between each stage.',
+    title: 'Stage Funnel',
+    description: 'Visual pipeline movement based on Stage. Track drop-off rates between each stage from Total down to Won.',
   },
   {
     icon: Ship,
     title: 'Fleet Metrics',
-    description: 'Total fleet size of filtered companies and penetration of signed accounts.',
+    description: 'Total fleet size of filtered companies and penetration rate of Won accounts.',
   },
   {
     icon: Target,
     title: 'Hit Rate & Conversion',
-    description: 'Hit Rate = Responded ÷ Contacted. Conversion = Signed ÷ Contacted. Engagement tracks active pipeline ratio.',
+    description: 'Hit Rate = Dialogue+ ÷ Contacted+. Conversion = Won ÷ Contacted+. Engagement tracks active pipeline ratio.',
   },
 ];
 

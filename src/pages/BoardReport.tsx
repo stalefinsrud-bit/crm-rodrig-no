@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Download, Anchor, Filter, HelpCircle, Camera, TrendingUp, TrendingDown, Monitor } from 'lucide-react';
 import { format } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { COMPANY_TYPES, COMPANY_STATUSES, PARTNER_STAGES, PARTNER_STAGE_DESCRIPTIONS } from '@/types/company';
+import { COMPANY_TYPES, COMPANY_STATUSES, STAGES, STAGE_DESCRIPTIONS } from '@/types/company';
 import { toast } from 'sonner';
 
 // Executive palette – strong, high-contrast colors
@@ -21,14 +21,21 @@ const EXEC_COLORS = [
 ];
 
 const STATUS_CHART_COLORS: Record<string, string> = {
-  'New Lead': '#C0392B',
+  'Active': '#27AE60',
+  'On Hold': '#F39C12',
+  'Dormant': '#95A5A6',
+  'Not Relevant': '#C0392B',
+};
+
+const STAGE_CHART_COLORS: Record<string, string> = {
+  'New': '#95A5A6',
+  'Identified': '#2980B9',
   'Contacted': '#F39C12',
-  'Meeting Scheduled': '#27AE60',
-  'Proposal Sent': '#2980B9',
-  'Negotiation': '#8E44AD',
-  'Agreement Signed': '#1B6B3A',
-  'Lost': '#7F8C8D',
-  'On Hold': '#95A5A6',
+  'In Dialogue': '#D4820A',
+  'Presented': '#8E44AD',
+  'Proposal': '#1B6B3A',
+  'Won': '#27AE60',
+  'Rejected': '#C0392B',
 };
 
 const PARTNER_FUNNEL_COLORS = [
@@ -54,7 +61,7 @@ export default function BoardReport() {
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [fleetFilter, setFleetFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [partnerStageFilter, setPartnerStageFilter] = useState<string>('all');
+  const [partnerStageFilter, setPartnerStageFilter] = useState<string>('all'); // now uses STAGES
   const [compareSnapshot, setCompareSnapshot] = useState<string>('none');
 
   const isSalesPartner = companyTypeFilter === 'Sales Partner';
@@ -84,12 +91,13 @@ export default function BoardReport() {
 
   const stats = useMemo(() => {
     const total = filtered.length;
-    const contacted = filtered.filter(c => c.status !== 'New Lead').length;
-    const signed = filtered.filter(c => c.status === 'Agreement Signed').length;
-    const lost = filtered.filter(c => c.status === 'Lost').length;
-    const inDialogue = filtered.filter(c => ['Meeting Scheduled', 'Negotiation'].includes(c.status)).length;
+    // Stage-based funnel stats
+    const contacted = filtered.filter(c => !['New', 'Identified'].includes(c.stage || '')).length;
+    const won = filtered.filter(c => c.stage === 'Won').length;
+    const lost = filtered.filter(c => c.stage === 'Rejected').length;
+    const inDialogue = filtered.filter(c => ['In Dialogue', 'Presented'].includes(c.stage || '')).length;
     const contactRate = total ? Math.round((contacted / total) * 100) : 0;
-    const conversionRate = contacted ? Math.round((signed / contacted) * 100) : 0;
+    const conversionRate = contacted ? Math.round((won / contacted) * 100) : 0;
 
     const byStatus: Record<string, number> = {};
     filtered.forEach(c => { byStatus[c.status] = (byStatus[c.status] || 0) + 1; });
@@ -111,17 +119,17 @@ export default function BoardReport() {
     const vesselSegmentData = Object.entries(byVesselSegment).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
+    const fleetWon = filtered.filter(c => c.stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
 
     const byPartnerStage: Record<string, number> = {};
     filtered.forEach(c => { if (c.stage) byPartnerStage[c.stage] = (byPartnerStage[c.stage] || 0) + 1; });
 
-    // Partner Conversion Rate: Active / (Presented + In Dialogue + Proposal Sent + Negotiation)
-    const activeCount = byPartnerStage['Active'] || 0;
-    const funnelDenominator = (byPartnerStage['Presented'] || 0) + (byPartnerStage['In Dialogue'] || 0) + (byPartnerStage['Proposal Sent'] || 0) + (byPartnerStage['Negotiation'] || 0);
-    const partnerConversionRate = funnelDenominator > 0 ? Math.round((activeCount / funnelDenominator) * 100) : 0;
+    // Stage Conversion Rate: Won / (Contacted + In Dialogue + Presented + Proposal)
+    const wonCount = byPartnerStage['Won'] || 0;
+    const funnelDenominator = (byPartnerStage['Contacted'] || 0) + (byPartnerStage['In Dialogue'] || 0) + (byPartnerStage['Presented'] || 0) + (byPartnerStage['Proposal'] || 0);
+    const partnerConversionRate = funnelDenominator > 0 ? Math.round((wonCount / funnelDenominator) * 100) : 0;
 
-    return { total, contacted, signed, lost, inDialogue, contactRate, conversionRate, byStatus, countryData, regionData, vesselTypeData, vesselSegmentData, fleetTotal, fleetSigned, byPartnerStage, partnerConversionRate };
+    return { total, contacted, won, lost, inDialogue, contactRate, conversionRate, byStatus, countryData, regionData, vesselTypeData, vesselSegmentData, fleetTotal, fleetWon, byPartnerStage, partnerConversionRate };
   }, [filtered]);
 
   // Top 10 Priority Accounts
@@ -150,20 +158,20 @@ export default function BoardReport() {
     const kpiData: Record<string, number> = {
       total: stats.total,
       contacted: stats.contacted,
-      signed: stats.signed,
+      won: stats.won,
       lost: stats.lost,
       inDialogue: stats.inDialogue,
       contactRate: stats.contactRate,
       conversionRate: stats.conversionRate,
       partnerConversionRate: stats.partnerConversionRate,
       fleetTotal: stats.fleetTotal,
-      fleetSigned: stats.fleetSigned,
+      fleetWon: stats.fleetWon,
     };
     await createSnapshot.mutateAsync({
       filters: { companyTypeFilter, regionFilter, fleetFilter, statusFilter, partnerStageFilter },
       kpi_data: kpiData,
       funnel_data: stats.byPartnerStage,
-      partner_conversion_rate: isSalesPartner ? stats.partnerConversionRate : null,
+      partner_conversion_rate: stats.partnerConversionRate,
       total_pipeline: stats.total,
       created_by: user?.id || null,
     });
@@ -287,13 +295,13 @@ export default function BoardReport() {
                   {COMPANY_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
-              {isSalesPartner && (
+              {(
                 <div className="flex items-center gap-1">
                   <Select value={partnerStageFilter} onValueChange={setPartnerStageFilter}>
-                    <SelectTrigger className="w-44 border-border"><SelectValue placeholder="Partner Stage" /></SelectTrigger>
+                    <SelectTrigger className="w-44 border-border"><SelectValue placeholder="Stage" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Stages</SelectItem>
-                      {PARTNER_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      {STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Popover>
@@ -303,10 +311,10 @@ export default function BoardReport() {
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
-                      {PARTNER_STAGES.map(s => (
+                      {STAGES.map(s => (
                         <div key={s}>
                           <span className="font-medium text-foreground">{s}</span>
-                          <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                          <span className="text-muted-foreground"> – {STAGE_DESCRIPTIONS[s]}</span>
                         </div>
                       ))}
                     </PopoverContent>
@@ -380,10 +388,10 @@ export default function BoardReport() {
               health: (stats.inDialogue > 0 ? 'green' : 'yellow') as 'green' | 'yellow' | 'red',
             },
             {
-              label: 'Agreements',
-              value: stats.signed,
-              field: 'signed',
-              health: (stats.signed > 0 ? 'green' : 'red') as 'green' | 'yellow' | 'red',
+              label: 'Won',
+              value: stats.won,
+              field: 'won',
+              health: (stats.won > 0 ? 'green' : 'red') as 'green' | 'yellow' | 'red',
             },
             {
               label: 'Conversion',
@@ -392,8 +400,8 @@ export default function BoardReport() {
               rawValue: stats.conversionRate,
               health: (stats.conversionRate > 10 ? 'green' : stats.conversionRate > 0 ? 'yellow' : 'red') as 'green' | 'yellow' | 'red',
             },
-            ...(isSalesPartner ? [{
-              label: 'Partner Conv.',
+            ...(true ? [{
+              label: 'Stage Conv.',
               value: `${stats.partnerConversionRate}%`,
               field: 'partnerConversionRate',
               rawValue: stats.partnerConversionRate,
@@ -425,12 +433,11 @@ export default function BoardReport() {
           })}
         </div>
 
-        {/* Partner Stage Funnel (Sales Partner only) */}
-        {showPartnerFunnel && (
+        {/* Stage Funnel */}
           <Card className="border-border">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-display">Partner Stage Funnel</CardTitle>
+                <CardTitle className="text-base font-display">Stage Funnel</CardTitle>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground transition-colors">
@@ -438,10 +445,10 @@ export default function BoardReport() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
-                    {PARTNER_STAGES.map(s => (
+                    {STAGES.map(s => (
                       <div key={s}>
                         <span className="font-medium text-foreground">{s}</span>
-                        <span className="text-muted-foreground"> – {PARTNER_STAGE_DESCRIPTIONS[s]}</span>
+                        <span className="text-muted-foreground"> – {STAGE_DESCRIPTIONS[s]}</span>
                       </div>
                     ))}
                   </PopoverContent>
@@ -450,7 +457,7 @@ export default function BoardReport() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {PARTNER_STAGES.map((stage, i) => {
+                {STAGES.map((stage, i) => {
                   const count = stats.byPartnerStage[stage] || 0;
                   const maxVal = Math.max(...Object.values(stats.byPartnerStage), 1);
                   const pct = Math.round((count / maxVal) * 100);
@@ -476,7 +483,6 @@ export default function BoardReport() {
               </div>
             </CardContent>
           </Card>
-        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -521,7 +527,7 @@ export default function BoardReport() {
                         stroke="#fff"
                       >
                         {Object.entries(stats.byStatus).map(([status], i) => (
-                          <Cell key={i} fill={STATUS_CHART_COLORS[status] || EXEC_COLORS[i % EXEC_COLORS.length]} />
+                          <Cell key={i} fill={STATUS_CHART_COLORS[status] || STAGE_CHART_COLORS[status] || EXEC_COLORS[i % EXEC_COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip contentStyle={TOOLTIP_STYLE} />
@@ -609,11 +615,11 @@ export default function BoardReport() {
                   <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Total Vessels</p>
                 </div>
                 <div className="rounded-lg p-5 text-center" style={{ backgroundColor: 'rgba(39, 174, 96, 0.06)', border: '1px solid rgba(39, 174, 96, 0.2)' }}>
-                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#27AE60' }}>{stats.fleetSigned.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Vessels Signed</p>
+                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#27AE60' }}>{stats.fleetWon.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Vessels Won</p>
                 </div>
                 <div className="rounded-lg p-5 text-center" style={{ backgroundColor: 'rgba(212, 130, 10, 0.06)', border: '1px solid rgba(212, 130, 10, 0.2)' }}>
-                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#D4820A' }}>{stats.fleetTotal ? Math.round((stats.fleetSigned / stats.fleetTotal) * 100) : 0}%</p>
+                  <p className={`font-bold ${boardMode ? 'text-4xl' : 'text-3xl'}`} style={{ color: '#D4820A' }}>{stats.fleetTotal ? Math.round((stats.fleetWon / stats.fleetTotal) * 100) : 0}%</p>
                   <p className="text-xs text-muted-foreground mt-1.5 uppercase tracking-wide font-semibold">Penetration</p>
                 </div>
               </div>
@@ -634,7 +640,7 @@ export default function BoardReport() {
                     <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Country</TableHead>
                     <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Status</TableHead>
                     <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Priority</TableHead>
-                    {isSalesPartner && <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Partner Stage</TableHead>}
+                    {isSalesPartner && <TableHead className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1B2A4A' }}>Stage</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -683,7 +689,7 @@ export default function BoardReport() {
                       <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Country</TableHead>
                       <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Region</TableHead>
                       <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
-                      {isSalesPartner && <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Partner Stage</TableHead>}
+                      {isSalesPartner && <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stage</TableHead>}
                       <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-right">Fleet</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -725,15 +731,15 @@ export default function BoardReport() {
               </p>
               <p>
                 Currently <strong className="text-foreground">{stats.inDialogue}</strong> companies are in active dialogue,
-                with <strong className="text-foreground">{stats.signed} agreements</strong> signed
-                {stats.lost > 0 && <> and {stats.lost} marked as lost</>}.
+                with <strong className="text-foreground">{stats.won} won</strong>
+                {stats.lost > 0 && <> and {stats.lost} rejected</>}.
               </p>
-              {isSalesPartner && stats.partnerConversionRate > 0 && (
+              {stats.partnerConversionRate > 0 && (
                 <p>
-                  Partner conversion rate is at <strong className="text-foreground">{stats.partnerConversionRate}%</strong>,
-                  with {stats.byPartnerStage['Active'] || 0} active partners out of {
-                    (stats.byPartnerStage['Presented'] || 0) + (stats.byPartnerStage['In Dialogue'] || 0) +
-                    (stats.byPartnerStage['Proposal Sent'] || 0) + (stats.byPartnerStage['Negotiation'] || 0)
+                  Stage conversion rate is at <strong className="text-foreground">{stats.partnerConversionRate}%</strong>,
+                  with {stats.byPartnerStage['Won'] || 0} won out of {
+                    (stats.byPartnerStage['Contacted'] || 0) + (stats.byPartnerStage['In Dialogue'] || 0) +
+                    (stats.byPartnerStage['Presented'] || 0) + (stats.byPartnerStage['Proposal'] || 0)
                   } in the pipeline.
                 </p>
               )}
@@ -742,7 +748,7 @@ export default function BoardReport() {
                   Compared to snapshot from <strong className="text-foreground">{format(new Date(selectedSnapshot.snapshot_date), 'MMM d, yyyy')}</strong>:
                   Pipeline {stats.total >= (selectedSnapshot.kpi_data as Record<string, number>).total ? 'grew' : 'decreased'} by{' '}
                   <strong className="text-foreground">{Math.abs(stats.total - ((selectedSnapshot.kpi_data as Record<string, number>).total || 0))}</strong> companies.
-                  Agreements moved from {(selectedSnapshot.kpi_data as Record<string, number>).signed || 0} to {stats.signed}.
+                  Agreements moved from {(selectedSnapshot.kpi_data as Record<string, number>).signed || (selectedSnapshot.kpi_data as Record<string, number>).won || 0} to {stats.won}.
                 </p>
               )}
             </div>

@@ -160,7 +160,7 @@ function parseCsv(text: string): ParsedRow[] {
       activity_log: get('activity_log') || null,
       next_action: get('next_action') || null,
       priority: get('priority') || 'Medium',
-      status: get('status') || 'New Lead',
+      status: get('status') || 'Active',
       fleet_size: fleetStr ? parseInt(fleetStr, 10) || null : null,
       strategic_insight: get('strategic_insight') || null,
       stage: get('stage') || null,
@@ -324,7 +324,7 @@ export default function CsvImportDialog() {
           }
           // Handle special fields
           if (row.priority && row.priority !== 'Medium') updates.priority = row.priority;
-          if (row.status && row.status !== 'New Lead') updates.status = row.status;
+          if (row.status && row.status !== 'Active') updates.status = row.status;
           if (row.fleet_size !== null) updates.fleet_size = row.fleet_size;
 
           if (Object.keys(updates).length > 0) {

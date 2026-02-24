@@ -49,45 +49,55 @@ export const COMPANY_TYPES = [
   'Supplier',
 ] as const;
 
+// Stage = Pipeline progression (required)
 export const STAGES = [
+  'New',
   'Identified',
-  'Presented',
+  'Contacted',
   'In Dialogue',
-  'Proposal Sent',
-  'Negotiation',
-  'Active',
+  'Presented',
+  'Proposal',
+  'Won',
   'Rejected',
-  'No Reply',
 ] as const;
 
 export const STAGE_DESCRIPTIONS: Record<string, string> = {
+  'New': 'Newly added, not yet assessed',
   'Identified': 'Company mapped, no contact yet',
-  'Presented': 'Intro or presentation shared',
+  'Contacted': 'Outreach initiated',
   'In Dialogue': 'Active discussion or meeting',
-  'Proposal Sent': 'Commercial proposal sent',
-  'Negotiation': 'Terms under discussion',
-  'Active': 'Agreement in place',
+  'Presented': 'Intro or presentation shared',
+  'Proposal': 'Commercial proposal sent',
+  'Won': 'Agreement in place',
   'Rejected': 'Declined cooperation',
-  'No Reply': 'Multiple attempts, no response',
 };
 
 // Backward-compatible aliases
 export const PARTNER_STAGES = STAGES;
 export const PARTNER_STAGE_DESCRIPTIONS = STAGE_DESCRIPTIONS;
 
-export const COMPANY_STATUSES = ['New Lead', 'Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed', 'Lost', 'On Hold'] as const;
+// Status = Operational state (optional)
+export const COMPANY_STATUSES = ['Active', 'On Hold', 'Dormant', 'Not Relevant'] as const;
+
 export const COMPANY_PRIORITIES = ['High', 'Medium', 'Low'] as const;
 export const ACTIVITY_TYPES: ActivityType[] = ['email', 'phone', 'meeting', 'linkedin', 'presentation', 'internal'];
 
 export const STATUS_COLORS: Record<string, string> = {
-  'New Lead': 'bg-info/10 text-info border-info/20',
-  'Contacted': 'bg-info/20 text-info border-info/30',
-  'Meeting Scheduled': 'bg-warning/10 text-warning border-warning/20',
-  'Proposal Sent': 'bg-warning/20 text-warning border-warning/30',
-  'Negotiation': 'bg-accent/20 text-accent-foreground border-accent/30',
-  'Agreement Signed': 'bg-success/10 text-success border-success/20',
-  'Lost': 'bg-destructive/10 text-destructive border-destructive/20',
-  'On Hold': 'bg-muted text-muted-foreground border-border',
+  'Active': 'bg-success/10 text-success border-success/20',
+  'On Hold': 'bg-warning/10 text-warning border-warning/20',
+  'Dormant': 'bg-muted text-muted-foreground border-border',
+  'Not Relevant': 'bg-destructive/10 text-destructive border-destructive/20',
+};
+
+export const STAGE_COLORS: Record<string, string> = {
+  'New': 'bg-info/10 text-info border-info/20',
+  'Identified': 'bg-info/20 text-info border-info/30',
+  'Contacted': 'bg-warning/10 text-warning border-warning/20',
+  'In Dialogue': 'bg-warning/20 text-warning border-warning/30',
+  'Presented': 'bg-accent/20 text-accent-foreground border-accent/30',
+  'Proposal': 'bg-accent/30 text-accent-foreground border-accent/40',
+  'Won': 'bg-success/10 text-success border-success/20',
+  'Rejected': 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
 export const PRIORITY_COLORS: Record<string, string> = {
