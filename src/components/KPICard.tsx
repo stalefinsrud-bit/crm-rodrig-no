@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
+import { KPITooltip } from '@/components/KPITooltip';
 
 interface KPICardProps {
   title: string;
@@ -8,6 +9,7 @@ interface KPICardProps {
   icon: LucideIcon;
   trend?: { value: number; label: string };
   variant?: 'default' | 'accent' | 'success' | 'info';
+  tooltip?: string;
 }
 
 const variantStyles = {
@@ -24,13 +26,16 @@ const iconStyles = {
   info: 'bg-info/10 text-info',
 };
 
-export function KPICard({ title, value, subtitle, icon: Icon, trend, variant = 'default' }: KPICardProps) {
+export function KPICard({ title, value, subtitle, icon: Icon, trend, variant = 'default', tooltip }: KPICardProps) {
   return (
     <Card className={`${variantStyles[variant]} animate-fade-in`}>
       <CardContent className="pt-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground font-medium">{title}</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm text-muted-foreground font-medium">{title}</p>
+              {tooltip && <KPITooltip text={tooltip} />}
+            </div>
             <p className="text-2xl font-bold tracking-tight">{value}</p>
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             {trend && (
