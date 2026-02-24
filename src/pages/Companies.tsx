@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Search, AlertTriangle, Trash2, RotateCcw, Eye, Pencil } from 'lucide-react';
-import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, PARTNER_STAGES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
+import { COMPANY_STATUSES, COMPANY_PRIORITIES, COMPANY_TYPES, STAGES, STATUS_COLORS, PRIORITY_COLORS } from '@/types/company';
 import CsvImportDialog from '@/components/CsvImportDialog';
 
 export default function Companies() {
@@ -133,7 +133,7 @@ export default function Companies() {
         next_action: (f.get('next_action') as string) || null,
         strategic_insight: (f.get('strategic_insight') as string) || null,
         priority: (f.get('priority') as string) || 'Medium',
-        status: 'New Lead',
+        status: 'Active',
         fleet_size: Number(f.get('fleet_size')) || null,
         stage: (f.get('stage') as string) || null,
         created_by: user?.id || null,
@@ -199,7 +199,7 @@ export default function Companies() {
                     <Label>Stage</Label>
                     <select name="stage" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                       <option value="">Select stage...</option>
-                      {PARTNER_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                      {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">

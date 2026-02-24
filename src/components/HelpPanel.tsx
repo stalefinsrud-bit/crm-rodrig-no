@@ -3,12 +3,12 @@ import { HelpCircle, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const DEFINITIONS = [
-  { term: 'Status', definition: 'Tracks contact progress: New Lead → Contacted → Meeting Scheduled → Proposal Sent → Negotiation → Agreement Signed.' },
-  { term: 'Stage', definition: 'Measures partnership maturity: Identified → Presented → In Dialogue → Proposal Sent → Negotiation → Active.' },
-  { term: 'Hit Rate', definition: 'Percentage of contacted companies that responded. Formula: Responded ÷ Contacted.' },
-  { term: 'Conversion', definition: 'Percentage of contacted companies that signed. Formula: Signed ÷ Contacted.' },
-  { term: 'Engagement', definition: 'Ratio of actively engaged companies (responded + dialogue + proposal) to total contacted.' },
-  { term: 'Fleet Penetration', definition: 'Share of total fleet covered by signed agreements. Formula: Fleet Signed ÷ Total Fleet.' },
+  { term: 'Stage', definition: 'Pipeline progression: New → Identified → Contacted → In Dialogue → Presented → Proposal → Won (or Rejected). Drives the funnel.' },
+  { term: 'Status', definition: 'Operational state: Active, On Hold, Dormant, Not Relevant. Independent of Stage.' },
+  { term: 'Hit Rate', definition: 'Percentage of contacted+ companies that reached dialogue+. Formula: Dialogue+ ÷ Contacted+.' },
+  { term: 'Conversion', definition: 'Percentage of contacted+ companies that Won. Formula: Won ÷ Contacted+.' },
+  { term: 'Engagement', definition: 'Ratio of actively engaged companies (dialogue + proposal) to total contacted+.' },
+  { term: 'Fleet Penetration', definition: 'Share of total fleet covered by Won agreements. Formula: Fleet Won ÷ Total Fleet.' },
 ];
 
 interface Props {

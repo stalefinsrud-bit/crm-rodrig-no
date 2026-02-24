@@ -19,25 +19,22 @@ const CHART_COLORS = [
 ];
 
 const FUNNEL_COLORS = [
-  'hsl(215, 28%, 17%)', 'hsl(205, 80%, 50%)', 'hsl(152, 60%, 40%)',
-  'hsl(38, 92%, 50%)', 'hsl(280, 60%, 50%)', 'hsl(152, 60%, 30%)',
+  'hsl(215, 28%, 17%)', 'hsl(205, 70%, 45%)', 'hsl(38, 92%, 50%)',
+  'hsl(280, 60%, 50%)', 'hsl(152, 60%, 40%)', 'hsl(205, 80%, 50%)',
+  'hsl(152, 60%, 30%)', 'hsl(0, 60%, 45%)',
 ];
 
-const TRAFFIC_LIGHT: Record<string, { color: string; label: string }> = {
-  'New Lead': { color: 'bg-destructive', label: 'Not Contacted' },
-  'Contacted': { color: 'bg-warning', label: 'Contacted – No Response' },
-  'Meeting Scheduled': { color: 'bg-success', label: 'Responded / Dialogue' },
-  'Negotiation': { color: 'bg-success', label: 'Responded / Dialogue' },
-  'Proposal Sent': { color: 'bg-info', label: 'Proposal' },
-  'Agreement Signed': { color: 'bg-emerald-800', label: 'Signed' },
-  'Lost': { color: 'bg-muted-foreground', label: 'Lost' },
-  'On Hold': { color: 'bg-muted-foreground', label: 'On Hold' },
+// Stage-based traffic light for the overview table
+const STAGE_TRAFFIC_LIGHT: Record<string, { color: string; label: string }> = {
+  'New': { color: 'bg-muted-foreground', label: 'New' },
+  'Identified': { color: 'bg-info', label: 'Identified' },
+  'Contacted': { color: 'bg-warning', label: 'Contacted' },
+  'In Dialogue': { color: 'bg-warning', label: 'In Dialogue' },
+  'Presented': { color: 'bg-accent', label: 'Presented' },
+  'Proposal': { color: 'bg-info', label: 'Proposal' },
+  'Won': { color: 'bg-success', label: 'Won' },
+  'Rejected': { color: 'bg-destructive', label: 'Rejected' },
 };
-
-const RESPONDED_STATUSES = ['Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed'];
-const DIALOGUE_STATUSES = ['Meeting Scheduled', 'Negotiation'];
-const PROPOSAL_STATUSES = ['Proposal Sent', 'Negotiation', 'Agreement Signed'];
-const CONTACTED_STATUSES = ['Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed'];
 
 export default function Dashboard() {
   const { data: companies = [], isLoading } = useCompanies();
@@ -68,7 +65,7 @@ export default function Dashboard() {
     return companies.filter(c => {
       if (regionFilter !== 'all' && c.region !== regionFilter) return false;
       if (segmentFilter !== 'all' && c.vessel_segment !== segmentFilter) return false;
-      if (statusFilter !== 'all' && c.status !== statusFilter) return false;
+      if (statusFilter !== 'all' && c.status?.toLowerCase() !== statusFilter.toLowerCase()) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
       if (companyTypeFilter !== 'all' && c.company_type?.toLowerCase() !== companyTypeFilter.toLowerCase()) return false;
       if (stageFilter !== 'all' && c.stage?.toLowerCase() !== stageFilter.toLowerCase()) return false;
@@ -77,40 +74,54 @@ export default function Dashboard() {
     });
   }, [companies, regionFilter, segmentFilter, statusFilter, priorityFilter, companyTypeFilter, stageFilter, companyIdsWithActivityType]);
 
+  // Funnel is now fully based on Stage
   const stats = useMemo(() => {
-    const identified = filtered.length;
-    const contacted = filtered.filter(c => CONTACTED_STATUSES.includes(c.status)).length;
-    const responded = filtered.filter(c => RESPONDED_STATUSES.includes(c.status)).length;
-    const dialogue = filtered.filter(c => DIALOGUE_STATUSES.includes(c.status)).length;
-    const proposal = filtered.filter(c => PROPOSAL_STATUSES.includes(c.status)).length;
-    const signed = filtered.filter(c => c.status === 'Agreement Signed').length;
+    const total = filtered.length;
+    const stageNew = filtered.filter(c => c.stage === 'New').length;
+    const identified = filtered.filter(c => c.stage === 'Identified').length;
+    const contacted = filtered.filter(c => c.stage === 'Contacted').length;
+    const inDialogue = filtered.filter(c => c.stage === 'In Dialogue').length;
+    const presented = filtered.filter(c => c.stage === 'Presented').length;
+    const proposal = filtered.filter(c => c.stage === 'Proposal').length;
+    const won = filtered.filter(c => c.stage === 'Won').length;
+    const rejected = filtered.filter(c => c.stage === 'Rejected').length;
 
-    const hitRate = contacted ? Math.round((responded / contacted) * 100) : 0;
-    const conversionRate = contacted ? ((signed / contacted) * 100).toFixed(1) : '0';
-    const engagementRate = contacted ? Math.round(((responded + dialogue + proposal) / contacted) * 100) : 0;
+    // Funnel: progressive pipeline stages (excluding Rejected)
+    const funnelData = [
+      { name: 'Total', value: total, fill: FUNNEL_COLORS[0] },
+      { name: 'Identified+', value: total - stageNew, fill: FUNNEL_COLORS[1] },
+      { name: 'Contacted+', value: contacted + inDialogue + presented + proposal + won, fill: FUNNEL_COLORS[2] },
+      { name: 'In Dialogue+', value: inDialogue + presented + proposal + won, fill: FUNNEL_COLORS[3] },
+      { name: 'Presented+', value: presented + proposal + won, fill: FUNNEL_COLORS[4] },
+      { name: 'Proposal+', value: proposal + won, fill: FUNNEL_COLORS[5] },
+      { name: 'Won', value: won, fill: FUNNEL_COLORS[6] },
+    ];
+
+    // KPI rates based on stage progression
+    const contactedPlus = contacted + inDialogue + presented + proposal + won;
+    const dialoguePlus = inDialogue + presented + proposal + won;
+    const hitRate = contactedPlus > 0 ? Math.round((dialoguePlus / contactedPlus) * 100) : 0;
+    const conversionRate = contactedPlus > 0 ? ((won / contactedPlus) * 100).toFixed(1) : '0';
+    const engagementRate = contactedPlus > 0 ? Math.round(((dialoguePlus + proposal) / contactedPlus) * 100) : 0;
 
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetSigned = filtered.filter(c => c.status === 'Agreement Signed').reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetPenetration = fleetTotal ? Math.round((fleetSigned / fleetTotal) * 100) : 0;
-
-    const funnelData = [
-      { name: 'Identified', value: identified, fill: FUNNEL_COLORS[0] },
-      { name: 'Contacted', value: contacted, fill: FUNNEL_COLORS[1] },
-      { name: 'Responded', value: responded, fill: FUNNEL_COLORS[2] },
-      { name: 'Dialogue', value: dialogue, fill: FUNNEL_COLORS[3] },
-      { name: 'Proposal', value: proposal, fill: FUNNEL_COLORS[4] },
-      { name: 'Signed', value: signed, fill: FUNNEL_COLORS[5] },
-    ];
+    const fleetWon = filtered.filter(c => c.stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
+    const fleetPenetration = fleetTotal ? Math.round((fleetWon / fleetTotal) * 100) : 0;
 
     const byCountry: Record<string, number> = {};
     filtered.forEach(c => { byCountry[c.country || 'Unknown'] = (byCountry[c.country || 'Unknown'] || 0) + 1; });
     const countryData = Object.entries(byCountry).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
 
-    const byStatus: Record<string, number> = {};
-    filtered.forEach(c => { byStatus[c.status] = (byStatus[c.status] || 0) + 1; });
-    const statusData = Object.entries(byStatus).map(([name, value]) => ({ name, value }));
+    const byStage: Record<string, number> = {};
+    filtered.forEach(c => { byStage[c.stage || 'Unknown'] = (byStage[c.stage || 'Unknown'] || 0) + 1; });
+    const stageDistribution = Object.entries(byStage).map(([name, value]) => ({ name, value }));
 
-    return { identified, contacted, responded, dialogue, proposal, signed, hitRate, conversionRate, engagementRate, fleetTotal, fleetSigned, fleetPenetration, funnelData, countryData, statusData };
+    return {
+      total, stageNew, identified, contacted, inDialogue, presented, proposal, won, rejected,
+      hitRate, conversionRate, engagementRate,
+      fleetTotal, fleetWon, fleetPenetration,
+      funnelData, countryData, stageDistribution,
+    };
   }, [filtered]);
 
   if (isLoading) {
@@ -136,7 +147,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Performance funnel & hit rate analytics</p>
+          <p className="text-muted-foreground mt-1">Stage-based funnel & pipeline analytics</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Filter className="h-4 w-4 text-muted-foreground" />
@@ -161,11 +172,18 @@ export default function Dashboard() {
               {segments.map(s => <SelectItem key={s!} value={s!}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={stageFilter} onValueChange={setStageFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Stage" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stages</SelectItem>
+              {stages.map(s => <SelectItem key={s!} value={s!}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              {['New Lead', 'Contacted', 'Meeting Scheduled', 'Proposal Sent', 'Negotiation', 'Agreement Signed', 'Lost', 'On Hold'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {statuses.map(s => <SelectItem key={s!} value={s!}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -182,26 +200,19 @@ export default function Dashboard() {
               {['email', 'phone', 'meeting', 'linkedin', 'presentation', 'internal'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Stage" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              {stages.map(s => <SelectItem key={s!} value={s!}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
-      {/* Performance KPIs */}
+      {/* Performance KPIs – Stage-based */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-        <KPICard title="Identified" value={stats.identified} icon={Users} tooltip="Total companies in the pipeline" />
-        <KPICard title="Contacted" value={stats.contacted} icon={Phone} variant="info" tooltip="Companies that have been reached out to" />
-        <KPICard title="Responded" value={stats.responded} icon={MessageSquare} variant="accent" tooltip="Companies that replied to outreach" />
-        <KPICard title="Dialogue" value={stats.dialogue} icon={TrendingUp} variant="accent" tooltip="Companies in active discussion or meeting" />
-        <KPICard title="Signed" value={stats.signed} icon={Handshake} variant="success" tooltip="Companies with signed agreements" />
-        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={Target} variant="info" subtitle="Responded / Contacted" tooltip="Responded ÷ Contacted. Measures outreach effectiveness." />
-        <KPICard title="Conversion" value={`${stats.conversionRate}%`} icon={Zap} variant="success" subtitle="Signed / Contacted" tooltip="Signed ÷ Contacted. Measures deal closure rate." />
-        <KPICard title="Engagement" value={`${stats.engagementRate}%`} icon={BarChart3} variant="accent" subtitle="Active / Contacted" tooltip="Active pipeline ratio of responded + dialogue + proposal to contacted." />
+        <KPICard title="Total" value={stats.total} icon={Users} tooltip="Total companies in the pipeline" />
+        <KPICard title="Contacted" value={stats.contacted + stats.inDialogue + stats.presented + stats.proposal + stats.won} icon={Phone} variant="info" tooltip="Companies at Contacted stage or beyond" />
+        <KPICard title="In Dialogue" value={stats.inDialogue} icon={MessageSquare} variant="accent" tooltip="Companies in active discussion" />
+        <KPICard title="Presented" value={stats.presented} icon={TrendingUp} variant="accent" tooltip="Companies with intro/presentation shared" />
+        <KPICard title="Won" value={stats.won} icon={Handshake} variant="success" tooltip="Companies with agreements in place" />
+        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={Target} variant="info" subtitle="Dialogue+ / Contacted+" tooltip="Dialogue+ ÷ Contacted+. Measures outreach effectiveness." />
+        <KPICard title="Conversion" value={`${stats.conversionRate}%`} icon={Zap} variant="success" subtitle="Won / Contacted+" tooltip="Won ÷ Contacted+. Measures deal closure rate." />
+        <KPICard title="Engagement" value={`${stats.engagementRate}%`} icon={BarChart3} variant="accent" subtitle="Active / Contacted+" tooltip="Active pipeline ratio of dialogue + proposal to contacted+." />
       </div>
 
       {/* Funnel + Fleet */}
@@ -209,7 +220,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-display flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-muted-foreground" /> Performance Funnel
+              <BarChart3 className="h-5 w-5 text-muted-foreground" /> Stage Funnel
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -222,7 +233,7 @@ export default function Dashboard() {
                   : null;
                 return (
                   <div key={stage.name} className="flex items-center gap-3">
-                    <span className="text-sm font-medium w-20 text-muted-foreground">{stage.name}</span>
+                    <span className="text-sm font-medium w-24 text-muted-foreground">{stage.name}</span>
                     <div className="flex-1 h-9 bg-muted rounded-md overflow-hidden relative">
                       <div className="h-full rounded-md transition-all duration-700 ease-out" style={{ width: `${Math.max(pct, 3)}%`, backgroundColor: stage.fill }} />
                       <span className="absolute inset-0 flex items-center pl-3 text-sm font-bold text-primary-foreground mix-blend-difference">
@@ -257,8 +268,8 @@ export default function Dashboard() {
                 <p className="text-2xl font-bold mt-1">{stats.fleetTotal.toLocaleString()}</p>
               </div>
               <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Fleet Signed</p>
-                <p className="text-2xl font-bold mt-1">{stats.fleetSigned.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Fleet Won</p>
+                <p className="text-2xl font-bold mt-1">{stats.fleetWon.toLocaleString()}</p>
               </div>
               <div className="rounded-lg border bg-muted/30 p-4">
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Penetration</p>
@@ -290,13 +301,13 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg font-display">Status Distribution</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg font-display">Stage Distribution</CardTitle></CardHeader>
           <CardContent>
-            {stats.statusData.length > 0 ? (
+            {stats.stageDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {stats.statusData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  <Pie data={stats.stageDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    {stats.stageDistribution.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
@@ -308,16 +319,17 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Traffic Light Table */}
+      {/* Company Overview Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-display">Company Status Overview</CardTitle>
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-destructive inline-block" /> Not Contacted</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-warning inline-block" /> Contacted – No Response</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-success inline-block" /> Responded / Dialogue</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-info inline-block" /> Proposal</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-800 inline-block" /> Signed</span>
+          <CardTitle className="text-lg font-display">Company Stage Overview</CardTitle>
+          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-muted-foreground inline-block" /> New</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-info inline-block" /> Identified</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-warning inline-block" /> Contacted / In Dialogue</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-accent inline-block" /> Presented</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-success inline-block" /> Won</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-destructive inline-block" /> Rejected</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -330,8 +342,8 @@ export default function Dashboard() {
                   <TableHead className="font-semibold">Type</TableHead>
                   <TableHead className="font-semibold">Country</TableHead>
                   <TableHead className="font-semibold">Region</TableHead>
+                  <TableHead className="font-semibold">Stage</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Contact</TableHead>
                   <TableHead className="font-semibold text-right">Fleet</TableHead>
                 </TableRow>
               </TableHeader>
@@ -340,16 +352,16 @@ export default function Dashboard() {
                   <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No companies match filters</TableCell></TableRow>
                 ) : (
                   filtered.slice(0, 25).map(c => {
-                    const tl = TRAFFIC_LIGHT[c.status] || { color: 'bg-muted-foreground', label: '?' };
+                    const tl = STAGE_TRAFFIC_LIGHT[c.stage || ''] || { color: 'bg-muted-foreground', label: '?' };
                     return (
                       <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
-                        <TableCell><div className={`h-3 w-3 rounded-full ${tl.color}`} title={`${tl.label}: ${c.status}`} /></TableCell>
+                        <TableCell><div className={`h-3 w-3 rounded-full ${tl.color}`} title={`${tl.label}`} /></TableCell>
                         <TableCell className="font-medium">{c.company}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                         <TableCell className="text-sm">{c.country || '—'}</TableCell>
                         <TableCell className="text-sm">{c.region || '—'}</TableCell>
-                        <TableCell className="text-sm">{c.status}</TableCell>
-                        <TableCell className="text-sm">{[c.first_name, c.last_name].filter(Boolean).join(' ') || '—'}</TableCell>
+                        <TableCell className="text-sm">{c.stage || '—'}</TableCell>
+                        <TableCell className="text-sm">{c.status || '—'}</TableCell>
                         <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? '—'}</TableCell>
                       </TableRow>
                     );
