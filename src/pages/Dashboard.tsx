@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Users, Phone, Handshake, TrendingUp, BarChart3, Filter, Target, Zap, MessageSquare, FileText } from 'lucide-react';
 import { KPICard } from '@/components/KPICard';
+import { KPITooltip } from '@/components/KPITooltip';
+import { DataHealthBanner } from '@/components/DataHealthBanner';
+import { OnboardingWalkthrough } from '@/components/OnboardingWalkthrough';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useCompanies, useAllActivities } from '@/hooks/useCompanies';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { COMPANY_TYPES, PARTNER_STAGES } from '@/types/company';
 import type { Company } from '@/types/company';
 
 const CHART_COLORS = [
@@ -39,6 +42,8 @@ const CONTACTED_STATUSES = ['Contacted', 'Meeting Scheduled', 'Proposal Sent', '
 export default function Dashboard() {
   const { data: companies = [], isLoading } = useCompanies();
   const { data: allActivities = [] } = useAllActivities();
+  const { showOnboarding, markComplete } = useOnboarding();
+  const [walkthroughOpen, setWalkthroughOpen] = useState(false);
   const [regionFilter, setRegionFilter] = useState<string>('all');
   const [segmentFilter, setSegmentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -47,8 +52,12 @@ export default function Dashboard() {
   const [companyTypeFilter, setCompanyTypeFilter] = useState<string>('all');
   const [stageFilter, setStageFilter] = useState<string>('all');
 
+  // Dynamic filter values from database
   const regions = useMemo(() => [...new Set(companies.map(c => c.region).filter(Boolean))].sort(), [companies]);
   const segments = useMemo(() => [...new Set(companies.map(c => c.vessel_segment).filter(Boolean))].sort(), [companies]);
+  const companyTypes = useMemo(() => [...new Set(companies.map(c => c.company_type).filter(Boolean))].sort(), [companies]);
+  const statuses = useMemo(() => [...new Set(companies.map(c => c.status).filter(Boolean))].sort(), [companies]);
+  const stages = useMemo(() => [...new Set(companies.map(c => (c.partner_stage || c.stage)).filter(Boolean))].sort(), [companies]);
 
   const companyIdsWithActivityType = useMemo(() => {
     if (activityTypeFilter === 'all') return null;
@@ -61,8 +70,8 @@ export default function Dashboard() {
       if (segmentFilter !== 'all' && c.vessel_segment !== segmentFilter) return false;
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
-      if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
-      if (stageFilter !== 'all' && c.partner_stage !== stageFilter) return false;
+      if (companyTypeFilter !== 'all' && c.company_type?.toLowerCase() !== companyTypeFilter.toLowerCase()) return false;
+      if (stageFilter !== 'all' && (c.partner_stage || c.stage)?.toLowerCase() !== stageFilter.toLowerCase()) return false;
       if (companyIdsWithActivityType && !companyIdsWithActivityType.has(c.id)) return false;
       return true;
     });
@@ -115,6 +124,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {(showOnboarding || walkthroughOpen) && (
+        <OnboardingWalkthrough
+          onComplete={() => { markComplete(); setWalkthroughOpen(false); }}
+          onSkip={() => { markComplete(); setWalkthroughOpen(false); }}
+        />
+      )}
+
+      <DataHealthBanner companies={filtered} />
+
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-display text-foreground">AWT Strategic Pipeline Dashboard</h1>
@@ -126,7 +144,7 @@ export default function Dashboard() {
             <SelectTrigger className="w-44"><SelectValue placeholder="Company Type" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {COMPANY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              {companyTypes.map(t => <SelectItem key={t!} value={t!}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={regionFilter} onValueChange={setRegionFilter}>
@@ -168,7 +186,7 @@ export default function Dashboard() {
             <SelectTrigger className="w-40"><SelectValue placeholder="Stage" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
-              {PARTNER_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {stages.map(s => <SelectItem key={s!} value={s!}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -176,14 +194,14 @@ export default function Dashboard() {
 
       {/* Performance KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-        <KPICard title="Identified" value={stats.identified} icon={Users} />
-        <KPICard title="Contacted" value={stats.contacted} icon={Phone} variant="info" />
-        <KPICard title="Responded" value={stats.responded} icon={MessageSquare} variant="accent" />
-        <KPICard title="Dialogue" value={stats.dialogue} icon={TrendingUp} variant="accent" />
-        <KPICard title="Signed" value={stats.signed} icon={Handshake} variant="success" />
-        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={Target} variant="info" subtitle="Responded / Contacted" />
-        <KPICard title="Conversion" value={`${stats.conversionRate}%`} icon={Zap} variant="success" subtitle="Signed / Contacted" />
-        <KPICard title="Engagement" value={`${stats.engagementRate}%`} icon={BarChart3} variant="accent" subtitle="Active / Contacted" />
+        <KPICard title="Identified" value={stats.identified} icon={Users} tooltip="Total companies in the pipeline" />
+        <KPICard title="Contacted" value={stats.contacted} icon={Phone} variant="info" tooltip="Companies that have been reached out to" />
+        <KPICard title="Responded" value={stats.responded} icon={MessageSquare} variant="accent" tooltip="Companies that replied to outreach" />
+        <KPICard title="Dialogue" value={stats.dialogue} icon={TrendingUp} variant="accent" tooltip="Companies in active discussion or meeting" />
+        <KPICard title="Signed" value={stats.signed} icon={Handshake} variant="success" tooltip="Companies with signed agreements" />
+        <KPICard title="Hit Rate" value={`${stats.hitRate}%`} icon={Target} variant="info" subtitle="Responded / Contacted" tooltip="Responded ÷ Contacted. Measures outreach effectiveness." />
+        <KPICard title="Conversion" value={`${stats.conversionRate}%`} icon={Zap} variant="success" subtitle="Signed / Contacted" tooltip="Signed ÷ Contacted. Measures deal closure rate." />
+        <KPICard title="Engagement" value={`${stats.engagementRate}%`} icon={BarChart3} variant="accent" subtitle="Active / Contacted" tooltip="Active pipeline ratio of responded + dialogue + proposal to contacted." />
       </div>
 
       {/* Funnel + Fleet */}

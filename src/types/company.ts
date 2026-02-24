@@ -20,7 +20,8 @@ export interface Company {
   priority: string;
   status: string;
   fleet_size: number | null;
-  partner_stage: string | null;
+  partner_stage?: string | null;
+  stage?: string | null;
   strategic_insight: string | null;
   is_deleted: boolean;
   created_at: string;
