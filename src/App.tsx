@@ -63,3 +63,15 @@ const App = () => (
 );
 
 export default App;
+
+const inviteUser = async (email: string) => {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: "https://crm.rodrig.no"
+    }
+  });
+
+  if (error) alert(error.message);
+  else alert("Magic link sendt.");
+};

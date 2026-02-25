@@ -1,0 +1,42 @@
+import { useState } from "react";
+
+export function InviteUser() {
+  const [email, setEmail] = useState("");
+  const [result, setResult] = useState<string | null>(null);
+
+  const sendInvite = async () => {
+    setResult(null);
+    const r = await fetch("/api/invite", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-invite-secret": import.meta.env.VITE_INVITE_SECRET,
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const j = await r.json();
+    if (!r.ok) return alert(j.error || "Feil");
+
+    setResult(j.action_link);
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 8, maxWidth: 520 }}>
+      <input
+        type="email"
+        placeholder="E-post til bruker"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <button onClick={sendInvite}>Lag Magic Link</button>
+
+      {result && (
+        <div style={{ wordBreak: "break-all" }}>
+          <div>Magic link:</div>
+          <a href={result} target="_blank" rel="noreferrer">{result}</a>
+        </div>
+      )}
+    </div>
+  );
+}
