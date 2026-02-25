@@ -1,9 +1,11 @@
+/* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
-
+/* -------------------------------------------------------
+   Base theme tokens (HSL values used by Tailwind/shadcn)
+-------------------------------------------------------- */
 @layer base {
   :root {
     --background: 210 20% 98%;
@@ -58,8 +60,9 @@
     --chart-4: 280 60% 50%;
     --chart-5: 0 72% 51%;
 
-    --font-display: 'DM Serif Display', serif;
-    --font-body: 'Inter', system-ui, sans-serif;
+    /* Fonts: settes her, men må finnes via HTML/head eller local fonts */
+    --font-display: "DM Serif Display", serif;
+    --font-body: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   }
 
   .dark {
@@ -109,9 +112,17 @@
   }
 }
 
+/* -------------------------------------------------------
+   Base element styling
+-------------------------------------------------------- */
 @layer base {
   * {
     @apply border-border;
+  }
+
+  html,
+  body {
+    height: 100%;
   }
 
   body {
@@ -119,11 +130,16 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-display);
   }
 }
 
+/* -------------------------------------------------------
+   Utilities
+-------------------------------------------------------- */
 @layer utilities {
   .text-display {
     font-family: var(--font-display);
