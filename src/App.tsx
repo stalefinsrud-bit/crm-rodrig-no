@@ -2,10 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "./hooks/useRole";
+
 import { AuthPage } from "@/components/AuthPage";
 import { AppLayout } from "@/components/AppLayout";
+
 import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
 import CompanyDetail from "@/pages/CompanyDetail";
@@ -16,33 +20,63 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function LoadingScreen({ text = "Loading..." }: { text?: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="text-center space-y-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+        <p className="text-muted-foreground text-sm">{text}</p>
+      </div>
+    </div>
+  );
+}
+
 function AuthenticatedRoutes() {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-          <p className="text-muted-foreground text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
 
   if (!user) return <AuthPage />;
+
+  const { role, loading: roleLoading } = useRole();
+  if (roleLoading) return <LoadingScreen />;
+
+  const isAdmin = role === "admin";
 
   return (
     <AppLayout>
       <Routes>
+        {/* Always available for both admin + viewer */}
         <Route path="/" element={<Dashboard />} />
-        <Route path="/companies" element={<Companies />} />
-        <Route path="/companies/:id" element={<CompanyDetail />} />
-        <Route path="/prospects" element={<Companies />} />
-        <Route path="/call-mode" element={<CallMode />} />
-        <Route path="/forecast" element={<Forecast />} />
         <Route path="/report" element={<BoardReport />} />
-        <Route path="*" element={<NotFound />} />
+
+        {/* Admin-only */}
+        <Route
+          path="/companies"
+          element={isAdmin ? <Companies /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/companies/:id"
+          element={isAdmin ? <CompanyDetail /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/prospects"
+          element={isAdmin ? <Companies /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/call-mode"
+          element={isAdmin ? <CallMode /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/forecast"
+          element={isAdmin ? <Forecast /> : <Navigate to="/" replace />}
+        />
+
+        {/* Fallback */}
+        <Route
+          path="*"
+          element={isAdmin ? <NotFound /> : <Navigate to="/" replace />}
+        />
       </Routes>
     </AppLayout>
   );
@@ -63,15 +97,3 @@ const App = () => (
 );
 
 export default App;
-
-const inviteUser = async (email: string) => {
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: "https://crm.rodrig.no"
-    }
-  });
-
-  if (error) alert(error.message);
-  else alert("Magic link sendt.");
-};
