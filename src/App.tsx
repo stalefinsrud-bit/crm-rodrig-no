@@ -1,8 +1,11 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import AuthCallback from "@/pages/AuthCallback";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -16,7 +19,7 @@ import CompanyDetail from "@/pages/CompanyDetail";
 import CallMode from "@/pages/CallMode";
 import Forecast from "@/pages/Forecast";
 import BoardReport from "@/pages/BoardReport";
-import NotFound from "./pages/NotFound";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -35,11 +38,10 @@ function AuthenticatedRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
-
   if (!user) return <AuthPage />;
 
   const { role, loading: roleLoading } = useRole();
-  if (roleLoading) return <LoadingScreen />;
+  if (roleLoading) return <LoadingScreen text="Loading permissions..." />;
 
   const isAdmin = role === "admin";
 
@@ -89,6 +91,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Needed for Supabase auth links (invite/magic link) */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/*" element={<AuthenticatedRoutes />} />
         </Routes>
       </BrowserRouter>
