@@ -49,7 +49,11 @@ export function AuthPage() {
           {loading ? "Sender..." : "Send magic link"}
         </button>
 
-        {status && <div className="text-sm text-muted-foreground">{status}</div>}
+        {status && (
+          <div className="text-sm text-muted-foreground break-words">
+            {status}
+          </div>
+        )}
       </div>
     </div>
   );
