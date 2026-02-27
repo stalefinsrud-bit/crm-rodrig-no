@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useRole } from "./hooks/useRole";
+import { useRole } from "@/hooks/useRole";
 
 import { AuthPage } from "@/components/AuthPage";
 import { AppLayout } from "@/components/AppLayout";

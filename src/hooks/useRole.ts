@@ -8,34 +8,41 @@ export function useRole() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let alive = true;
+    let cancelled = false;
 
-    (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      const userId = s.session?.user.id;
+    const load = async () => {
+      try {
+        const { data: s } = await supabase.auth.getSession();
+        const userId = s.session?.user?.id;
 
-      if (!userId) {
-        if (alive) {
-          setRole("viewer");
-          setLoading(false);
+        if (!userId) {
+          if (!cancelled) setRole("viewer");
+          return;
         }
-        return;
-      }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .maybeSingle();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
+          .maybeSingle();
 
-      if (alive) {
-        setRole((data?.role as Role) ?? "viewer");
-        setLoading(false);
+        if (error) {
+          console.warn("useRole: profiles select failed", error);
+          if (!cancelled) setRole("viewer");
+          return;
+        }
+
+        const r = (data as any)?.role;
+        if (!cancelled) setRole(r === "admin" ? "admin" : "viewer");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    })();
+    };
+
+    load();
 
     return () => {
-      alive = false;
+      cancelled = true;
     };
   }, []);
 
