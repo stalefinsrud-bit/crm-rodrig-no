@@ -27,16 +27,17 @@ export function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 space-y-4">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold">Logg inn</h1>
+          <h1 className="text-xl font-semibold">RodRig CRM</h1>
           <p className="text-sm text-muted-foreground">
-            Skriv inn e-post – du får en innloggingslenke (ingen passord).
+            Logg inn med e-post (ingen passord).
           </p>
         </div>
 
+        <label className="text-sm font-medium">Email</label>
         <input
           className="w-full rounded-md border border-input bg-background px-3 py-2"
           type="email"
-          placeholder="E-post"
+          placeholder="you@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
