@@ -28,9 +28,10 @@ export function AuthPage() {
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 space-y-4">
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">RodRig CRM</h1>
-          <p className="text-sm text-muted-foreground">
-            Logg inn med e-post (ingen passord).
-          </p>
+<p className="text-xs text-muted-foreground">MAGICLINK BUILD v1</p>
+<p className="text-sm text-muted-foreground">
+  Logg inn med e-post (ingen passord).
+</p>
         </div>
 
         <label className="text-sm font-medium">Email</label>
