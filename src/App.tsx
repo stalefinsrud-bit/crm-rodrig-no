@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AuthCallback from "@/pages/AuthCallback";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,13 +68,13 @@ export default function App() {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             {/* Needed for Supabase auth links (magic link) */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/*" element={<AuthenticatedRoutes />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

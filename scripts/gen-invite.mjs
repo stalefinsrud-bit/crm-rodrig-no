@@ -19,7 +19,7 @@ if (!email || !redirectTo) {
 const admin = createClient(url, secret);
 
 const { data, error } = await admin.auth.admin.generateLink({
-  type: "invite",
+  type: "magiclink",
   email,
   options: { redirectTo },
 });
@@ -29,4 +29,4 @@ if (error) {
   process.exit(1);
 }
 
-console.log("\nINVITE LINK:\n" + data.properties.action_link + "\n");
+console.log("\nLOGIN LINK:\n" + data.properties.action_link + "\n");
