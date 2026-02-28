@@ -8,10 +8,9 @@ export default function AuthCallback() {
   useEffect(() => {
     (async () => {
       try {
-        // PKCE: bytt "code" i URL til session
         await supabase.auth.exchangeCodeForSession(window.location.href);
       } catch {
-        // Hvis implicit-flow / allerede ok, ignorer
+        // ignore
       } finally {
         navigate("/", { replace: true });
       }
@@ -19,7 +18,7 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-3">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
         <p className="text-muted-foreground text-sm">Signing you in...</p>
