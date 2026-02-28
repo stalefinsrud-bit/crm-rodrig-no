@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AuthCallback from "@/pages/AuthCallback";
-
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 
@@ -48,56 +47,35 @@ function AuthenticatedRoutes() {
   return (
     <AppLayout>
       <Routes>
-        {/* Always available for both admin + viewer */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/report" element={<BoardReport />} />
 
-        {/* Admin-only */}
-        <Route
-          path="/companies"
-          element={isAdmin ? <Companies /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/companies/:id"
-          element={isAdmin ? <CompanyDetail /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/prospects"
-          element={isAdmin ? <Companies /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/call-mode"
-          element={isAdmin ? <CallMode /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/forecast"
-          element={isAdmin ? <Forecast /> : <Navigate to="/" replace />}
-        />
+        <Route path="/companies" element={isAdmin ? <Companies /> : <Navigate to="/" replace />} />
+        <Route path="/companies/:id" element={isAdmin ? <CompanyDetail /> : <Navigate to="/" replace />} />
+        <Route path="/prospects" element={isAdmin ? <Companies /> : <Navigate to="/" replace />} />
+        <Route path="/call-mode" element={isAdmin ? <CallMode /> : <Navigate to="/" replace />} />
+        <Route path="/forecast" element={isAdmin ? <Forecast /> : <Navigate to="/" replace />} />
 
-        {/* Fallback */}
-        <Route
-          path="*"
-          element={isAdmin ? <NotFound /> : <Navigate to="/" replace />}
-        />
+        <Route path="*" element={isAdmin ? <NotFound /> : <Navigate to="/" replace />} />
       </Routes>
     </AppLayout>
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Needed for Supabase auth links (invite/magic link) */}
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/*" element={<AuthenticatedRoutes />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Needed for Supabase auth links (magic link) */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/*" element={<AuthenticatedRoutes />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
