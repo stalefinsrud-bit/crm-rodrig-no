@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AuthCallback from "@/pages/AuthCallback";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +35,6 @@ function LoadingScreen({ text = "Loading..." }: { text?: string }) {
 
 function AuthenticatedRoutes() {
   const { user, loading } = useAuth();
-
   if (loading) return <LoadingScreen />;
   if (!user) return <AuthPage />;
 
@@ -68,13 +67,12 @@ export default function App() {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <HashRouter>
+        <BrowserRouter>
           <Routes>
-            {/* Needed for Supabase auth links (magic link) */}
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/*" element={<AuthenticatedRoutes />} />
           </Routes>
-        </HashRouter>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
