@@ -6,6 +6,10 @@ export function AuthPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Read error message passed back from AuthCallback
+  const params = new URLSearchParams(window.location.search);
+  const authError = params.get("authError");
+
   const sendMagicLink = async () => {
     setStatus(null);
     setLoading(true);
@@ -14,6 +18,7 @@ export function AuthPage() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     setLoading(false);
@@ -32,6 +37,12 @@ export function AuthPage() {
             Logg inn med e-post (ingen passord).
           </p>
         </div>
+
+        {authError && (
+          <div className="text-sm text-destructive break-words">
+            {decodeURIComponent(authError)}
+          </div>
+        )}
 
         <label className="text-sm font-medium">Email</label>
         <input
