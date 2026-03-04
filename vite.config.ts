@@ -12,12 +12,11 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
 
   resolve: {
-    preserveSymlinks: false,
     dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
 
-      // HARD-fix mot dobbel React runtime (årsaken til #310 i prod)
+      // Tving én React-instans i bundle (fjerner #310 når det skyldes dobbel React runtime)
       react: path.resolve(__dirname, "./node_modules/react"),
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
       "react/jsx-runtime": path.resolve(__dirname, "./node_modules/react/jsx-runtime"),
