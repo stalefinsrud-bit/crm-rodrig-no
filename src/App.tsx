@@ -35,13 +35,13 @@ function LoadingScreen({ text = "Loading..." }: { text?: string }) {
 
 function AuthenticatedRoutes() {
   const { user, loading } = useAuth();
+  const { role, loading: roleLoading } = useRole();
+
   if (loading) return <LoadingScreen />;
   if (!user) return <AuthPage />;
-
-  const { role, loading: roleLoading } = useRole();
   if (roleLoading) return <LoadingScreen text="Loading permissions..." />;
 
-  const isAdmin = role === "admin";
+  const isAdmin = role === "owner";
 
   return (
     <AppLayout>
@@ -51,7 +51,7 @@ function AuthenticatedRoutes() {
 
         <Route path="/companies" element={isAdmin ? <Companies /> : <Navigate to="/" replace />} />
         <Route path="/companies/:id" element={isAdmin ? <CompanyDetail /> : <Navigate to="/" replace />} />
-        <Route path="/prospects" element={isAdmin ? <Companies /> : <Navigate to="/" replace />} />
+        <Route path="/prospects" element={<Navigate to="/companies" replace />} />
         <Route path="/call-mode" element={isAdmin ? <CallMode /> : <Navigate to="/" replace />} />
         <Route path="/forecast" element={isAdmin ? <Forecast /> : <Navigate to="/" replace />} />
 

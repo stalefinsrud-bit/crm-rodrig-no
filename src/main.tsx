@@ -39,8 +39,8 @@ function renderApp() {
       });
       if (sErr) console.error("setSession error:", sErr);
 
-      // Remove tokens from URL so we don't loop
-      window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+      // Redirect to root so we don't land on /auth/callback with no token_hash
+      window.history.replaceState({}, "", "/");
     }
   } catch (e: any) {
     console.error("Bootstrap error:", e?.message || e);
