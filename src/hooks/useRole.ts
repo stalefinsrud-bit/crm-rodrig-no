@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Role = "admin" | "viewer";
+export type Role = "owner" | "editor";
 
 export function useRole() {
-  const [role, setRole] = useState<Role>("viewer");
+  const [role, setRole] = useState<Role>("editor");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,38 +20,37 @@ export function useRole() {
 
     const load = async () => {
       try {
-        // 1) Hent session (hvis ikke innlogget -> viewer)
         const { data: s, error: sessErr } = await supabase.auth.getSession();
         if (sessErr) {
           console.warn("useRole: getSession failed", sessErr);
-          safeSetRole("viewer");
+          safeSetRole("editor");
           return;
         }
 
         const userId = s.session?.user?.id;
         if (!userId) {
-          safeSetRole("viewer");
+          safeSetRole("editor");
           return;
         }
 
-        // 2) Slå opp rolle i profiles
+        // Query user_roles table — profiles has no role column
         const { data, error } = await supabase
-          .from("profiles")
+          .from("user_roles")
           .select("role")
-          .eq("id", userId)
+          .eq("user_id", userId)
+          .eq("role", "owner")
           .maybeSingle();
 
         if (error) {
-          console.warn("useRole: profiles select failed", error);
-          safeSetRole("viewer");
+          console.warn("useRole: user_roles select failed", error);
+          safeSetRole("editor");
           return;
         }
 
-        const r = (data as any)?.role;
-        safeSetRole(r === "admin" ? "admin" : "viewer");
+        safeSetRole(data ? "owner" : "editor");
       } catch (e) {
         console.warn("useRole: unexpected error", e);
-        safeSetRole("viewer");
+        safeSetRole("editor");
       } finally {
         safeSetLoading(false);
       }

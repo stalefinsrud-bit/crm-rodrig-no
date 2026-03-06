@@ -37,7 +37,7 @@ export function AppSidebar() {
   const { role, loading } = useRole();
 
   // mens rolle lastes: vis minimal meny (unngår “flash” av admin-lenker)
-  const isAdmin = !loading && role === "admin";
+  const isAdmin = !loading && role === "owner";
   const navItems = isAdmin
     ? navItemsAll
     : navItemsAll.filter((i) => i.url === "/" || i.url === "/report");
