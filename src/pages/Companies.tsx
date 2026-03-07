@@ -135,7 +135,7 @@ export default function Companies() {
         priority: (f.get('priority') as string) || 'Medium',
         status: 'Active',
         fleet_size: Number(f.get('fleet_size')) || null,
-        stage: (f.get('stage') as string) || null,
+        partner_stage: (f.get('partner_stage') as string) || null,
         created_by: user?.id || null,
       });
       setDialogOpen(false);

@@ -36,7 +36,7 @@ interface ParsedRow {
   status: string;
   fleet_size: number | null;
   strategic_insight: string | null;
-  stage: string | null;
+  partner_stage: string | null;
 }
 
 interface ValidationResult {
@@ -86,9 +86,9 @@ const CSV_FIELD_MAP: Record<string, keyof ParsedRow> = {
   'fleet_size': 'fleet_size',
   'strategic insight': 'strategic_insight',
   'strategic_insight': 'strategic_insight',
-  'partner stage': 'stage',
-  'partner_stage': 'stage',
-  'stage': 'stage',
+  'partner stage': 'partner_stage',
+  'partner_stage': 'partner_stage',
+  'stage': 'partner_stage',
 };
 
 function parseCsvLine(line: string): string[] {
@@ -163,7 +163,7 @@ function parseCsv(text: string): ParsedRow[] {
       status: get('status') || 'Active',
       fleet_size: fleetStr ? parseInt(fleetStr, 10) || null : null,
       strategic_insight: get('strategic_insight') || null,
-      stage: get('stage') || null,
+      partner_stage: get('partner_stage') || null,
     };
   });
 }
@@ -279,7 +279,7 @@ export default function CsvImportDialog() {
           status: row.status,
           fleet_size: row.fleet_size,
           strategic_insight: row.strategic_insight,
-          stage: row.stage,
+          partner_stage: row.partner_stage,
           created_by: user.id,
         }));
 
@@ -317,7 +317,7 @@ export default function CsvImportDialog() {
             'code', 'region', 'vessel_type', 'vessel_segment', 'size',
             'company_type', 'website', 'first_name', 'last_name', 'source',
             'email', 'phone', 'last_contact_date', 'next_action',
-            'strategic_insight', 'stage',
+            'strategic_insight', 'partner_stage',
           ];
           for (const f of fields) {
             if (row[f]) updates[f] = row[f];

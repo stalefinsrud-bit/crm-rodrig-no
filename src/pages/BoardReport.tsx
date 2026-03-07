@@ -78,7 +78,7 @@ export default function BoardReport() {
       if (companyTypeFilter !== 'all' && c.company_type !== companyTypeFilter) return false;
       if (regionFilter !== 'all' && c.region !== regionFilter) return false;
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
-      if (partnerStageFilter !== 'all' && c.stage !== partnerStageFilter) return false;
+      if (partnerStageFilter !== 'all' && c.partner_stage !== partnerStageFilter) return false;
       if (fleetFilter !== 'all') {
         const fs = c.fleet_size || 0;
         if (fleetFilter === 'small' && fs > 10) return false;
@@ -92,10 +92,10 @@ export default function BoardReport() {
   const stats = useMemo(() => {
     const total = filtered.length;
     // Stage-based funnel stats
-    const contacted = filtered.filter(c => !['New', 'Identified'].includes(c.stage || '')).length;
-    const won = filtered.filter(c => c.stage === 'Won').length;
-    const lost = filtered.filter(c => c.stage === 'Rejected').length;
-    const inDialogue = filtered.filter(c => ['In Dialogue', 'Presented'].includes(c.stage || '')).length;
+    const contacted = filtered.filter(c => !['New', 'Identified'].includes(c.partner_stage || '')).length;
+    const won = filtered.filter(c => c.partner_stage === 'Won').length;
+    const lost = filtered.filter(c => c.partner_stage === 'Rejected').length;
+    const inDialogue = filtered.filter(c => ['In Dialogue', 'Presented'].includes(c.partner_stage || '')).length;
     const contactRate = total ? Math.round((contacted / total) * 100) : 0;
     const conversionRate = contacted ? Math.round((won / contacted) * 100) : 0;
 
@@ -119,10 +119,10 @@ export default function BoardReport() {
     const vesselSegmentData = Object.entries(byVesselSegment).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetWon = filtered.filter(c => c.stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
+    const fleetWon = filtered.filter(c => c.partner_stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
 
     const byPartnerStage: Record<string, number> = {};
-    filtered.forEach(c => { if (c.stage) byPartnerStage[c.stage] = (byPartnerStage[c.stage] || 0) + 1; });
+    filtered.forEach(c => { if (c.partner_stage) byPartnerStage[c.partner_stage] = (byPartnerStage[c.partner_stage] || 0) + 1; });
 
     // Stage Conversion Rate: Won / (Contacted + In Dialogue + Presented + Proposal)
     const wonCount = byPartnerStage['Won'] || 0;
@@ -526,7 +526,7 @@ export default function BoardReport() {
                   const total = PIPELINE_STAGES.reduce((sum, s) => sum + (stats.byPartnerStage[s] || 0), 0);
                   if (total === 0) return <div className="flex h-[120px] items-center justify-center text-muted-foreground text-sm">No data</div>;
                   const segments = PIPELINE_STAGES.map(s => ({
-                    stage: s,
+                    partner_stage: s,
                     count: stats.byPartnerStage[s] || 0,
                     pct: Math.round(((stats.byPartnerStage[s] || 0) / total) * 100),
                     color: STAGE_BAR_COLORS[s],
@@ -537,10 +537,10 @@ export default function BoardReport() {
                       <div className="flex h-10 rounded-md overflow-hidden">
                         {segments.map((seg) => (
                           <div
-                            key={seg.stage}
+                            key={seg.partner_stage}
                             className="flex items-center justify-center transition-all duration-500 relative"
                             style={{ width: `${Math.max(seg.pct, 2)}%`, backgroundColor: seg.color }}
-                            title={`${seg.stage}: ${seg.count} (${seg.pct}%)`}
+                            title={`${seg.partner_stage}: ${seg.count} (${seg.pct}%)`}
                           >
                             {seg.pct > 5 && (
                               <span className="text-[11px] font-semibold text-white truncate px-1">
@@ -553,9 +553,9 @@ export default function BoardReport() {
                       {/* Legend */}
                       <div className="flex flex-wrap gap-x-5 gap-y-1.5">
                         {segments.map((seg) => (
-                          <div key={seg.stage} className="flex items-center gap-1.5">
+                          <div key={seg.partner_stage} className="flex items-center gap-1.5">
                             <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: seg.color }} />
-                            <span className="text-xs text-muted-foreground">{seg.stage}</span>
+                            <span className="text-xs text-muted-foreground">{seg.partner_stage}</span>
                             <span className="text-xs font-medium">{seg.count}</span>
                           </div>
                         ))}
@@ -694,7 +694,7 @@ export default function BoardReport() {
                             {c.priority}
                           </span>
                         </TableCell>
-                        {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.stage || '—'}</TableCell>}
+                        {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
                       </TableRow>
                     ))
                   )}
@@ -733,7 +733,7 @@ export default function BoardReport() {
                           <TableCell className="text-sm text-muted-foreground">{c.country || '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{c.region || '—'}</TableCell>
                           <TableCell className="text-sm">{c.status}</TableCell>
-                          {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.stage || '—'}</TableCell>}
+                          {isSalesPartner && <TableCell className="text-sm text-muted-foreground">{c.partner_stage || '—'}</TableCell>}
                           <TableCell className="text-right font-mono text-sm text-muted-foreground">{c.fleet_size ?? '—'}</TableCell>
                         </TableRow>
                       ))

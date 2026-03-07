@@ -54,7 +54,7 @@ export default function Dashboard() {
   const segments = useMemo(() => [...new Set(companies.map(c => c.vessel_segment).filter(Boolean))].sort(), [companies]);
   const companyTypes = useMemo(() => [...new Set(companies.map(c => c.company_type).filter(Boolean))].sort(), [companies]);
   const statuses = useMemo(() => [...new Set(companies.map(c => c.status).filter(Boolean))].sort(), [companies]);
-  const stages = useMemo(() => [...new Set(companies.map(c => c.stage).filter(Boolean))].sort(), [companies]);
+  const stages = useMemo(() => [...new Set(companies.map(c => c.partner_stage).filter(Boolean))].sort(), [companies]);
 
   const companyIdsWithActivityType = useMemo(() => {
     if (activityTypeFilter === 'all') return null;
@@ -68,7 +68,7 @@ export default function Dashboard() {
       if (statusFilter !== 'all' && c.status?.toLowerCase() !== statusFilter.toLowerCase()) return false;
       if (priorityFilter !== 'all' && c.priority !== priorityFilter) return false;
       if (companyTypeFilter !== 'all' && c.company_type?.toLowerCase() !== companyTypeFilter.toLowerCase()) return false;
-      if (stageFilter !== 'all' && c.stage?.toLowerCase() !== stageFilter.toLowerCase()) return false;
+      if (stageFilter !== 'all' && c.partner_stage?.toLowerCase() !== stageFilter.toLowerCase()) return false;
       if (companyIdsWithActivityType && !companyIdsWithActivityType.has(c.id)) return false;
       return true;
     });
@@ -77,14 +77,14 @@ export default function Dashboard() {
   // Funnel is now fully based on Stage
   const stats = useMemo(() => {
     const total = filtered.length;
-    const stageNew = filtered.filter(c => c.stage === 'New').length;
-    const identified = filtered.filter(c => c.stage === 'Identified').length;
-    const contacted = filtered.filter(c => c.stage === 'Contacted').length;
-    const inDialogue = filtered.filter(c => c.stage === 'In Dialogue').length;
-    const presented = filtered.filter(c => c.stage === 'Presented').length;
-    const proposal = filtered.filter(c => c.stage === 'Proposal').length;
-    const won = filtered.filter(c => c.stage === 'Won').length;
-    const rejected = filtered.filter(c => c.stage === 'Rejected').length;
+    const stageNew = filtered.filter(c => c.partner_stage === 'New').length;
+    const identified = filtered.filter(c => c.partner_stage === 'Identified').length;
+    const contacted = filtered.filter(c => c.partner_stage === 'Contacted').length;
+    const inDialogue = filtered.filter(c => c.partner_stage === 'In Dialogue').length;
+    const presented = filtered.filter(c => c.partner_stage === 'Presented').length;
+    const proposal = filtered.filter(c => c.partner_stage === 'Proposal').length;
+    const won = filtered.filter(c => c.partner_stage === 'Won').length;
+    const rejected = filtered.filter(c => c.partner_stage === 'Rejected').length;
 
     // Funnel: progressive pipeline stages (excluding Rejected)
     const funnelData = [
@@ -105,7 +105,7 @@ export default function Dashboard() {
     const engagementRate = contactedPlus > 0 ? Math.round(((dialoguePlus + proposal) / contactedPlus) * 100) : 0;
 
     const fleetTotal = filtered.reduce((s, c) => s + (c.fleet_size || 0), 0);
-    const fleetWon = filtered.filter(c => c.stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
+    const fleetWon = filtered.filter(c => c.partner_stage === 'Won').reduce((s, c) => s + (c.fleet_size || 0), 0);
     const fleetPenetration = fleetTotal ? Math.round((fleetWon / fleetTotal) * 100) : 0;
 
     const byCountry: Record<string, number> = {};
@@ -113,7 +113,7 @@ export default function Dashboard() {
     const countryData = Object.entries(byCountry).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
 
     const byStage: Record<string, number> = {};
-    filtered.forEach(c => { byStage[c.stage || 'Unknown'] = (byStage[c.stage || 'Unknown'] || 0) + 1; });
+    filtered.forEach(c => { byStage[c.partner_stage || 'Unknown'] = (byStage[c.partner_stage || 'Unknown'] || 0) + 1; });
     const stageDistribution = Object.entries(byStage).map(([name, value]) => ({ name, value }));
 
     return {
@@ -352,7 +352,7 @@ export default function Dashboard() {
                   <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No companies match filters</TableCell></TableRow>
                 ) : (
                   filtered.slice(0, 25).map(c => {
-                    const tl = STAGE_TRAFFIC_LIGHT[c.stage || ''] || { color: 'bg-muted-foreground', label: '?' };
+                    const tl = STAGE_TRAFFIC_LIGHT[c.partner_stage || ''] || { color: 'bg-muted-foreground', label: '?' };
                     return (
                       <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
                         <TableCell><div className={`h-3 w-3 rounded-full ${tl.color}`} title={`${tl.label}`} /></TableCell>
@@ -360,7 +360,7 @@ export default function Dashboard() {
                         <TableCell className="text-sm text-muted-foreground">{c.company_type || '—'}</TableCell>
                         <TableCell className="text-sm">{c.country || '—'}</TableCell>
                         <TableCell className="text-sm">{c.region || '—'}</TableCell>
-                        <TableCell className="text-sm">{c.stage || '—'}</TableCell>
+                        <TableCell className="text-sm">{c.partner_stage || '—'}</TableCell>
                         <TableCell className="text-sm">{c.status || '—'}</TableCell>
                         <TableCell className="text-right font-mono text-sm">{c.fleet_size ?? '—'}</TableCell>
                       </TableRow>

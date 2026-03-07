@@ -137,8 +137,9 @@ New users are automatically created with `user` role. To grant admin access, run
 ```sql
 -- Replace with the user's UUID (find it in auth.users)
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('<user-uuid>', 'admin')
-ON CONFLICT (user_id, role) DO NOTHING;
+VALUES ('045a0dff-59a1-42dd-ad5a-d2fb185ab39f', 'owner')
+ON CONFLICT (user_id) DO UPDATE
+SET role = 'owner';
 ```
 
 Admins can access: Dashboard, Companies, Call Mode, Forecast, Board Report.
