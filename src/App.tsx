@@ -33,12 +33,9 @@ function LoadingScreen({ text = "Loading..." }: { text?: string }) {
   );
 }
 
-function AuthenticatedRoutes() {
-  const { user, loading } = useAuth();
+function RoleGatedRoutes() {
   const { role, loading: roleLoading } = useRole();
 
-  if (loading) return <LoadingScreen />;
-  if (!user) return <AuthPage />;
   if (roleLoading) return <LoadingScreen text="Loading permissions..." />;
 
   const isAdmin = role === "owner";
@@ -59,6 +56,15 @@ function AuthenticatedRoutes() {
       </Routes>
     </AppLayout>
   );
+}
+
+function AuthenticatedRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  if (!user) return <AuthPage />;
+
+  return <RoleGatedRoutes />;
 }
 
 export default function App() {
