@@ -1,7 +1,5 @@
 {
-  "installCommand": "bun install",
-  "buildCommand": "bun run build",
-  "routes": [
+"routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
