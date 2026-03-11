@@ -389,36 +389,36 @@ export default function CompanyDetail() {
                     <Plus className="h-4 w-4 mr-2" /> Add Contact
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="border-border bg-card text-foreground">
                   <DialogHeader>
                     <DialogTitle className="font-display">{editingContact ? 'Edit Contact' : 'Add Contact'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSaveContact} className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <Label>First Name</Label>
-                        <Input name="first_name" defaultValue={editingContact?.first_name || ''} />
+                        <Label className="text-foreground">First Name</Label>
+                        <Input className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="first_name" defaultValue={editingContact?.first_name || ''} />
                       </div>
                       <div className="space-y-1">
-                        <Label>Last Name</Label>
-                        <Input name="last_name" defaultValue={editingContact?.last_name || ''} />
+                        <Label className="text-foreground">Last Name</Label>
+                        <Input className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="last_name" defaultValue={editingContact?.last_name || ''} />
                       </div>
                       <div className="space-y-1">
-                        <Label>Email</Label>
-                        <Input name="email" type="email" defaultValue={editingContact?.email || ''} />
+                        <Label className="text-foreground">Email</Label>
+                        <Input className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="email" type="email" defaultValue={editingContact?.email || ''} />
                       </div>
                       <div className="space-y-1">
-                        <Label>Phone</Label>
-                        <Input name="phone" defaultValue={editingContact?.phone || ''} />
+                        <Label className="text-foreground">Phone</Label>
+                        <Input className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="phone" defaultValue={editingContact?.phone || ''} />
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <Label>Role / Title</Label>
-                        <Input name="role" defaultValue={editingContact?.role || ''} />
+                        <Label className="text-foreground">Role / Title</Label>
+                        <Input className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="role" defaultValue={editingContact?.role || ''} />
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Switch name="is_primary" id="is_primary" defaultChecked={editingContact?.is_primary ?? false} />
-                      <Label htmlFor="is_primary" className="text-sm cursor-pointer">Primary contact</Label>
+                      <Switch className="data-[state=unchecked]:bg-muted data-[state=checked]:bg-primary" name="is_primary" id="is_primary" defaultChecked={editingContact?.is_primary ?? false} />
+                      <Label htmlFor="is_primary" className="text-sm cursor-pointer text-foreground">Primary contact</Label>
                     </div>
                     <Button type="submit" className="w-full" disabled={createContact.isPending || updateContact.isPending}>
                       {editingContact ? 'Update Contact' : 'Add Contact'}
@@ -480,15 +480,15 @@ export default function CompanyDetail() {
                     <Plus className="h-4 w-4 mr-2" /> Add Activity
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="border-border bg-card text-foreground">
                   <DialogHeader>
                     <DialogTitle className="font-display">Add Activity</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleAddActivity} className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Activity Type</Label>
+                      <Label className="text-foreground">Activity Type</Label>
                       <Select name="activity_type" defaultValue="internal">
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="border-border bg-muted/40 text-foreground"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {ACTIVITY_TYPES.map(t => (
                             <SelectItem key={t} value={t}>{ACTIVITY_TYPE_LABELS[t]}</SelectItem>
@@ -497,8 +497,8 @@ export default function CompanyDetail() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Details</Label>
-                      <Textarea name="activity_text" required rows={4} placeholder="Describe the activity..." />
+                      <Label className="text-foreground">Details</Label>
+                      <Textarea className="border-border bg-muted/40 text-foreground placeholder:text-muted-foreground" name="activity_text" required rows={4} placeholder="Describe the activity..." />
                     </div>
                     <Button type="submit" className="w-full" disabled={createActivity.isPending}>
                       {createActivity.isPending ? 'Saving...' : 'Save Activity'}
